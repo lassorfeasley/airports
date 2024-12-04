@@ -1,4 +1,4 @@
-// Initialize Mapbox
+ // Initialize Mapbox
 document.addEventListener('DOMContentLoaded', async function () {
     mapboxgl.accessToken = 'pk.eyJ1IjoibGFzc29yLWZlYXNsZXkiLCJhIjoiY2xocTdpenBxMW1vcDNqbnUwaXZ3YjZvdSJ9.yAmcJgAq3-ts7qthbc4njg'; // Your access token
 
