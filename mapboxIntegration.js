@@ -1,12 +1,12 @@
 // Initialize Mapbox
 document.addEventListener('DOMContentLoaded', async function () {
-    mapboxgl.accessToken = 'your-mapbox-access-token'; // Replace with your Mapbox token
+    mapboxgl.accessToken = 'pk.eyJ1IjoibGFzc29yLWZlYXNsZXkiLCJhIjoiY2xocTdpenBxMW1vcDNqbnUwaXZ3YjZvdSJ9.yAmcJgAq3-ts7qthbc4njg'; // Your access token
 
     const map = new mapboxgl.Map({
         container: 'map', // The ID of the div where the map will be rendered
-        style: 'mapbox://styles/your-username/your-style-id', // Replace with your preferred styling
+        style: 'mapbox://styles/lassor-feasley/cloonclal00bj01ns6c7q6aay', // Your custom styling
         center: [-98.5795, 39.8283], // Default center (USA)
-        zoom: 3 // Default zoom
+        zoom: 3 // Default zoom level
     });
 
     // Store airport data
@@ -63,8 +63,8 @@ document.addEventListener('DOMContentLoaded', async function () {
                 source: 'flightPath',
                 layout: {},
                 paint: {
-                    'line-color': '#FF0000',
-                    'line-width': 2
+                    'line-color': '#FF0000', // Red line for the path
+                    'line-width': 3 // Width of the line
                 }
             });
         }
