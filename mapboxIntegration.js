@@ -8,10 +8,20 @@ const map = new mapboxgl.Map({
     zoom: 3
 });
 
-// Store markers and line layer globally
+// Cache airport data and other variables
+let airportData = null;
 let originMarker = null;
 let destinationMarker = null;
 let animationFrameId;
+
+// Fetch airport data once
+async function fetchAirportData() {
+    if (!airportData) {
+        const response = await fetch('https://lassorfeasley.github.io/airports/airports.json');
+        airportData = await response.json();
+    }
+    return airportData;
+}
 
 // Function to add markers and animate the line
 function updateMap(origin, destination) {
@@ -21,21 +31,34 @@ function updateMap(origin, destination) {
     if (map.getSource('route')) map.removeLayer('route').removeSource('route');
 
     // Add markers for the airports
-    originMarker = new mapboxgl.Marker({ color: 'green' }).setLngLat([origin.Longitude, origin.Latitude]).addTo(map);
-    destinationMarker = new mapboxgl.Marker({ color: 'blue' }).setLngLat([destination.Longitude, destination.Latitude]).addTo(map);
+    originMarker = new mapboxgl.Marker({ color: 'green' })
+        .setLngLat([origin.Longitude, origin.Latitude])
+        .addTo(map);
+    destinationMarker = new mapboxgl.Marker({ color: 'blue' })
+        .setLngLat([destination.Longitude, destination.Latitude])
+        .addTo(map);
 
-    // Define the full route coordinates
+    // Define route coordinates
     const routeCoordinates = [
         [origin.Longitude, origin.Latitude],
         [destination.Longitude, destination.Latitude]
     ];
 
-    // Initialize the animated route with only the origin point
+    // Precompute interpolated points using Turf.js
+    const line = turf.lineString(routeCoordinates);
+    const distance = turf.length(line); // Calculate total length in kilometers
+    const steps = 500; // Number of animation steps
+    const points = [];
+    for (let i = 0; i <= steps; i++) {
+        points.push(turf.along(line, (distance / steps) * i).geometry.coordinates);
+    }
+
+    // Initialize the animated route
     const animatedRoute = {
         type: 'Feature',
         geometry: {
             type: 'LineString',
-            coordinates: [routeCoordinates[0]] // Start with the origin only
+            coordinates: [] // Start with an empty line
         }
     };
 
@@ -58,54 +81,45 @@ function updateMap(origin, destination) {
     });
 
     // Animate the line
-    animateLine(routeCoordinates, animatedRoute);
+    animateLine(points, animatedRoute);
 }
 
 // Function to animate the line
-function animateLine(routeCoordinates, animatedRoute) {
-    let progress = 0; // Animation progress
+function animateLine(points, animatedRoute) {
+    let index = 0;
 
     function frame() {
-        progress += 0.01; // Increase progress
-        if (progress > 1) {
+        if (index >= points.length) {
             cancelAnimationFrame(animationFrameId);
             return;
         }
 
-        // Calculate the current interpolated point along the line
-        const interpolatedPoint = interpolateCoordinates(routeCoordinates[0], routeCoordinates[1], progress);
-
-        // Update the line's coordinates
-        animatedRoute.geometry.coordinates.push(interpolatedPoint);
+        // Update the line with the next point
+        animatedRoute.geometry.coordinates.push(points[index]);
         map.getSource('route').setData(animatedRoute);
-
+        index++;
         animationFrameId = requestAnimationFrame(frame);
     }
 
-    frame(); // Start animation
+    frame(); // Start the animation
 }
 
-// Function to interpolate between two points
-function interpolateCoordinates(start, end, t) {
-    const lng = start[0] + (end[0] - start[0]) * t;
-    const lat = start[1] + (end[1] - start[1]) * t;
-    return [lng, lat];
-}
-
-// Call updateMap when airports are selected
-document.addEventListener('change', async function () {
+// Event handler for dropdown changes
+async function handleAirportChange() {
     const originCode = document.getElementById('origin-dropdown').value.trim();
     const destinationCode = document.getElementById('destination-dropdown').value.trim();
 
     if (originCode && destinationCode) {
-        const response = await fetch('https://lassorfeasley.github.io/airports/airports.json');
-        const airportData = await response.json();
-
-        const origin = airportData.find(airport => airport.IATA === originCode);
-        const destination = airportData.find(airport => airport.IATA === destinationCode);
+        const data = await fetchAirportData();
+        const origin = data.find(airport => airport.IATA === originCode);
+        const destination = data.find(airport => airport.IATA === destinationCode);
 
         if (origin && destination) {
             updateMap(origin, destination);
         }
     }
-});
+}
+
+// Attach event listeners to dropdowns
+document.getElementById('origin-dropdown').addEventListener('change', handleAirportChange);
+document.getElementById('destination-dropdown').addEventListener('change', handleAirportChange);
