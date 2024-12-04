@@ -9,55 +9,47 @@ document.addEventListener('DOMContentLoaded', function () {
     const tripSelector = document.querySelectorAll('input[name="roundtrip"]');
 
     let airportData = [];
-    const EARTH_RADIUS = 3958.7613;
+    const EARTH_RADIUS = 3958.8; // Miles
 
     // Mapbox setup
     mapboxgl.accessToken = 'your-mapbox-access-token'; // Replace with your Mapbox token
     const map = new mapboxgl.Map({
         container: 'map', // ID of the map div in Webflow
         style: 'mapbox://styles/lassor-feasley/cloonclal00bj01ns6c7q6aay',
-        center: [-98.5795, 39.8283], // Center map on the US
-        zoom: 2
+        center: [0, 20], // Centered for a global view
+        zoom: 1.5
     });
 
-    // Markers and line
+    // Markers and route line
     let originMarker, destinationMarker, routeLine;
 
-    // Convert degrees to radians
-    const toRadians = (value) => (value * Math.PI) / 180;
-
-    // Haversine formula
+    // Haversine formula for distance calculation
     function calculateDistance(lat1, lon1, lat2, lon2) {
-        const lat1Rad = toRadians(lat1);
-        const lat2Rad = toRadians(lat2);
+        const toRadians = (value) => (value * Math.PI) / 180;
+
         const dLat = toRadians(lat2 - lat1);
         const dLon = toRadians(lon2 - lon1);
-
         const a =
             Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return EARTH_RADIUS * c; // Distance in miles
     }
 
-    // Fetch airport data
-    async function fetchAirportData() {
-        try {
-            const response = await fetch('https://lassorfeasley.github.io/airports/airports.json');
-            airportData = await response.json();
-        } catch (error) {
-            console.error('Error fetching airport data:', error);
-        }
-    }
-
-    // Draw the route on the map
+    // Draw the great-circle route using Turf.js
     function drawRoute(lat1, lon1, lat2, lon2) {
         if (routeLine) {
             map.removeLayer('route');
             map.removeSource('route');
         }
 
-        const route = turf.greatCircle([lon1, lat1], [lon2, lat2], { npoints: 100 });
+        // Create a GeoJSON LineString for the route
+        const route = turf.greatCircle([lon1, lat1], [lon2, lat2], {
+            npoints: 100
+        });
+
+        // Add the route to the map
         map.addSource('route', {
             type: 'geojson',
             data: route
@@ -73,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             paint: {
                 'line-color': '#ff0000',
-                'line-width': 3
+                'line-width': 2
             }
         });
 
@@ -88,6 +80,16 @@ document.addEventListener('DOMContentLoaded', function () {
             destinationMarker = new mapboxgl.Marker({ color: 'blue' }).setLngLat([lon2, lat2]).addTo(map);
         } else {
             destinationMarker.setLngLat([lon2, lat2]);
+        }
+    }
+
+    // Fetch airport data
+    async function fetchAirportData() {
+        try {
+            const response = await fetch('https://lassorfeasley.github.io/airports/airports.json');
+            airportData = await response.json();
+        } catch (error) {
+            console.error('Error fetching airport data:', error);
         }
     }
 
