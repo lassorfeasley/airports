@@ -1,106 +1,104 @@
- // Initialize Mapbox
-document.addEventListener('DOMContentLoaded', async function () {
-    mapboxgl.accessToken = 'pk.eyJ1IjoibGFzc29yLWZlYXNsZXkiLCJhIjoiY2xocTdpenBxMW1vcDNqbnUwaXZ3YjZvdSJ9.yAmcJgAq3-ts7qthbc4njg'; // Your access token
+mapboxgl.accessToken = 'pk.eyJ1IjoibGFzc29yLWZlYXNsZXkiLCJhIjoiY2xocTdpenBxMW1vcDNqbnUwaXZ3YjZvdSJ9.yAmcJgAq3-ts7qthbc4njg';
 
-    const map = new mapboxgl.Map({
-        container: 'map', // The ID of the div where the map will be rendered
-        style: 'mapbox://styles/lassor-feasley/cloonclal00bj01ns6c7q6aay', // Your custom styling
-        center: [-98.5795, 39.8283], // Default center (USA)
-        zoom: 3 // Default zoom level
+// Initialize the map
+const map = new mapboxgl.Map({
+    container: 'map', // ID of the div block containing the map
+    style: 'mapbox://styles/lassor-feasley/cloonclal00bj01ns6c7q6aay',
+    center: [-98, 39], // Center of the USA
+    zoom: 3
+});
+
+// Store markers and line layer globally
+let originMarker = null;
+let destinationMarker = null;
+let animationFrameId;
+
+// Function to add markers and animate the line
+function updateMap(origin, destination) {
+    // Clear existing markers and line
+    if (originMarker) originMarker.remove();
+    if (destinationMarker) destinationMarker.remove();
+    if (map.getSource('route')) map.removeLayer('route').removeSource('route');
+
+    // Add markers for the airports
+    originMarker = new mapboxgl.Marker({ color: 'green' }).setLngLat([origin.Longitude, origin.Latitude]).addTo(map);
+    destinationMarker = new mapboxgl.Marker({ color: 'blue' }).setLngLat([destination.Longitude, destination.Latitude]).addTo(map);
+
+    // Define the GeoJSON line data
+    const route = {
+        type: 'Feature',
+        geometry: {
+            type: 'LineString',
+            coordinates: [
+                [origin.Longitude, origin.Latitude],
+                [destination.Longitude, destination.Latitude]
+            ]
+        }
+    };
+
+    // Add the line to the map
+    map.addSource('route', {
+        type: 'geojson',
+        data: route
     });
 
-    // Store airport data
-    let airportData = [];
-
-    // Fetch airport data
-    async function fetchAirportData() {
-        try {
-            const response = await fetch('https://lassorfeasley.github.io/airports/airports.json');
-            airportData = await response.json();
-        } catch (error) {
-            console.error('Error fetching airport data:', error);
+    map.addLayer({
+        id: 'route',
+        type: 'line',
+        source: 'route',
+        layout: {},
+        paint: {
+            'line-color': '#ff0000',
+            'line-width': 4,
+            'line-opacity': 0.8
         }
-    }
+    });
 
-    await fetchAirportData();
+    // Animate the line
+    animateLine();
+}
 
-    const originDropdown = document.getElementById('origin-dropdown');
-    const destinationDropdown = document.getElementById('destination-dropdown');
+// Function to animate the line
+function animateLine() {
+    let progress = 0; // Line animation progress
 
-    let originMarker, destinationMarker, flightPath;
-
-    // Function to add a marker to the map
-    function addMarker(lng, lat, color) {
-        return new mapboxgl.Marker({ color })
-            .setLngLat([lng, lat])
-            .addTo(map);
-    }
-
-    // Function to draw a line between two points
-    function drawLine(coords) {
-        if (map.getSource('flightPath')) {
-            map.getSource('flightPath').setData({
-                type: 'Feature',
-                geometry: {
-                    type: 'LineString',
-                    coordinates: coords
-                }
-            });
-        } else {
-            map.addSource('flightPath', {
-                type: 'geojson',
-                data: {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'LineString',
-                        coordinates: coords
-                    }
-                }
-            });
-            map.addLayer({
-                id: 'flightPath',
-                type: 'line',
-                source: 'flightPath',
-                layout: {},
-                paint: {
-                    'line-color': '#FF0000', // Red line for the path
-                    'line-width': 3 // Width of the line
-                }
-            });
+    function frame() {
+        progress += 0.01; // Increase progress
+        if (progress > 1) {
+            cancelAnimationFrame(animationFrameId);
+            return;
         }
+
+        // Update the line with the progress
+        map.setPaintProperty('route', 'line-gradient', [
+            'interpolate',
+            ['linear'],
+            ['line-progress'],
+            0, 'rgba(0, 255, 0, 0)', // Start transparent
+            progress, 'rgba(255, 0, 0, 1)', // Gradually appear
+            1, 'rgba(255, 0, 0, 1)' // End fully visible
+        ]);
+
+        animationFrameId = requestAnimationFrame(frame);
     }
 
-    // Update map based on user selections
-    function updateMap() {
-        const originCode = originDropdown.value.trim();
-        const destinationCode = destinationDropdown.value.trim();
+    frame(); // Start animation
+}
 
-        if (!airportData || airportData.length === 0) return;
+// Call updateMap when airports are selected
+document.addEventListener('change', async function () {
+    const originCode = document.getElementById('origin-dropdown').value.trim();
+    const destinationCode = document.getElementById('destination-dropdown').value.trim();
+
+    if (originCode && destinationCode) {
+        const response = await fetch('https://lassorfeasley.github.io/airports/airports.json');
+        const airportData = await response.json();
 
         const origin = airportData.find(airport => airport.IATA === originCode);
         const destination = airportData.find(airport => airport.IATA === destinationCode);
 
-        if (origin) {
-            if (originMarker) originMarker.remove();
-            originMarker = addMarker(origin.Longitude, origin.Latitude, '#008000'); // Green for origin
-            map.flyTo({ center: [origin.Longitude, origin.Latitude], zoom: 5 });
-        }
-
-        if (destination) {
-            if (destinationMarker) destinationMarker.remove();
-            destinationMarker = addMarker(destination.Longitude, destination.Latitude, '#0000FF'); // Blue for destination
-        }
-
         if (origin && destination) {
-            const coords = [
-                [origin.Longitude, origin.Latitude],
-                [destination.Longitude, destination.Latitude]
-            ];
-            drawLine(coords);
+            updateMap(origin, destination);
         }
     }
-
-    // Attach event listeners to dropdowns
-    originDropdown.addEventListener('change', updateMap);
-    destinationDropdown.addEventListener('change', updateMap);
 });
