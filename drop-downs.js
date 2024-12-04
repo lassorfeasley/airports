@@ -1,6 +1,5 @@
-<script>
 // Wait for the document to load
-document.addEventListener("DOMContentLoaded", async function() {
+document.addEventListener("DOMContentLoaded", async function () {
     const originDropdown = document.getElementById("origin-dropdown");
     const destinationDropdown = document.getElementById("destination-dropdown");
     let airportData = []; // Store airport data locally
@@ -15,14 +14,14 @@ document.addEventListener("DOMContentLoaded", async function() {
     // Fetch airport data once on page load
     async function fetchAirportData() {
         try {
-            const response = await fetch('https://lassorfeasley.github.io/airports/airports.json');
+            const response = await fetch("https://lassorfeasley.github.io/airports/airports.json");
             airportData = await response.json();
         } catch (error) {
-            console.error('Error fetching airport data:', error);
+            console.error("Error fetching airport data:", error);
         }
     }
 
-    // Populate the dropdown with initial popular airports
+    // Populate dropdown with initial popular airports
     function populateDropdownWithPopular(dropdown) {
         dropdown.innerHTML = ""; // Clear existing options
         const placeholderOption = document.createElement("option");
@@ -100,4 +99,3 @@ document.addEventListener("DOMContentLoaded", async function() {
         }
     });
 });
-</script>
