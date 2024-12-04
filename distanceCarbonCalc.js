@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const EARTH_RADIUS = 3958.8; // Miles
 
     // Mapbox setup
-    mapboxgl.accessToken = 'your-mapbox-access-token'; // Replace with your Mapbox token
+    mapboxgl.accessToken = 'pk.eyJ1IjoibGFzc29yLWZlYXNsZXkiLCJhIjoiY2xpMGZjNXkwMWU0dDNtbjAyNTQycGtvdiJ9.5gQH73uj-MnVtC_evAvdvw'; // Replace with your Mapbox token
     const map = new mapboxgl.Map({
         container: 'map', // ID of the map div in Webflow
         style: 'mapbox://styles/lassor-feasley/cloonclal00bj01ns6c7q6aay',
