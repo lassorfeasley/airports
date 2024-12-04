@@ -24,22 +24,25 @@ function updateMap(origin, destination) {
     originMarker = new mapboxgl.Marker({ color: 'green' }).setLngLat([origin.Longitude, origin.Latitude]).addTo(map);
     destinationMarker = new mapboxgl.Marker({ color: 'blue' }).setLngLat([destination.Longitude, destination.Latitude]).addTo(map);
 
-    // Define the GeoJSON line data
-    const route = {
+    // Define the full route coordinates
+    const routeCoordinates = [
+        [origin.Longitude, origin.Latitude],
+        [destination.Longitude, destination.Latitude]
+    ];
+
+    // Initialize the animated route with only the origin point
+    const animatedRoute = {
         type: 'Feature',
         geometry: {
             type: 'LineString',
-            coordinates: [
-                [origin.Longitude, origin.Latitude],
-                [destination.Longitude, destination.Latitude]
-            ]
+            coordinates: [routeCoordinates[0]] // Start with the origin only
         }
     };
 
-    // Add the line to the map
+    // Add the animated route source to the map
     map.addSource('route', {
         type: 'geojson',
-        data: route
+        data: animatedRoute
     });
 
     map.addLayer({
@@ -55,12 +58,12 @@ function updateMap(origin, destination) {
     });
 
     // Animate the line
-    animateLine();
+    animateLine(routeCoordinates, animatedRoute);
 }
 
 // Function to animate the line
-function animateLine() {
-    let progress = 0; // Line animation progress
+function animateLine(routeCoordinates, animatedRoute) {
+    let progress = 0; // Animation progress
 
     function frame() {
         progress += 0.01; // Increase progress
@@ -69,20 +72,24 @@ function animateLine() {
             return;
         }
 
-        // Update the line with the progress
-        map.setPaintProperty('route', 'line-gradient', [
-            'interpolate',
-            ['linear'],
-            ['line-progress'],
-            0, 'rgba(0, 255, 0, 0)', // Start transparent
-            progress, 'rgba(255, 0, 0, 1)', // Gradually appear
-            1, 'rgba(255, 0, 0, 1)' // End fully visible
-        ]);
+        // Calculate the current interpolated point along the line
+        const interpolatedPoint = interpolateCoordinates(routeCoordinates[0], routeCoordinates[1], progress);
+
+        // Update the line's coordinates
+        animatedRoute.geometry.coordinates.push(interpolatedPoint);
+        map.getSource('route').setData(animatedRoute);
 
         animationFrameId = requestAnimationFrame(frame);
     }
 
     frame(); // Start animation
+}
+
+// Function to interpolate between two points
+function interpolateCoordinates(start, end, t) {
+    const lng = start[0] + (end[0] - start[0]) * t;
+    const lat = start[1] + (end[1] - start[1]) * t;
+    return [lng, lat];
 }
 
 // Call updateMap when airports are selected
