@@ -1,12 +1,13 @@
-mapboxgl.accessToken = 'pk.eyJ1IjoibGFzc29yLWZlYXNsZXkiLCJhIjoiY2xpMGZjNXkwMWU0dDNtbjAyNTQycGtvdiJ9.5gQH73uj-MnVtC_evAvdvw';
+mapboxgl.accessToken = 'pk.eyJ1IjoibGFzc29yLWZlYXNsZXkiLCJhIjoiY2xocTdpenBxMW1vcDNqbnUwaXZ3YjZvdSJ9.yAmcJgAq3-ts7qthbc4njg';
 
-// Initialize the map
 const map = new mapboxgl.Map({
     container: 'map', // ID of the div block containing the map
-    style: 'mapbox://styles/lassor-feasley/cloonclal00bj01ns6c7q6aay',
-    center: [-98, 39], // Center of the USA
-    zoom: 3
+    style: 'mapbox://styles/lassor-feasley/cloonclal00bj01ns6c7q6aay', // Your custom Mapbox style
+    center: [0, 20], // Centered for a global view
+    zoom: 1.5, // Adjust initial zoom level
+    projection: 'equirectangular' // Set projection to Equirectangular
 });
+
 
 // Store markers and line layer globally
 let originMarker = null;
