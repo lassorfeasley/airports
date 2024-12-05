@@ -3,6 +3,21 @@ document.addEventListener('DOMContentLoaded', async function () {
     const destinationDropdown = document.getElementById('destination-dropdown');
     let airportData = [];
 
+    // Initialize Choices.js for dropdowns
+    const originChoices = new Choices(originDropdown, {
+        searchEnabled: false,
+        shouldSort: false,
+        itemSelectText: '',
+        placeholderValue: 'Type to search for an airport...'
+    });
+
+    const destinationChoices = new Choices(destinationDropdown, {
+        searchEnabled: false,
+        shouldSort: false,
+        itemSelectText: '',
+        placeholderValue: 'Type to search for an airport...'
+    });
+
     // Fetch airport data
     async function fetchAirportData() {
         try {
@@ -13,48 +28,44 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
     }
 
-    // Filter airport options based on user input
-    function filterAirports(input, dropdown) {
-        // Clear the dropdown list
-        dropdown.innerHTML = '';
+    // Filter and display airport matches
+    function filterAirports(input, choicesInstance) {
+        if (input.trim() === '') {
+            choicesInstance.clearChoices(); // Clear dropdown if no input
+            return;
+        }
 
-        if (input.trim() === '') return; // Do nothing if input is empty
-
-        // Filter airports by name or IATA code and limit results to 4
+        // Filter airports and show top 4 matches
         const matches = airportData
             .filter((airport) =>
                 airport.Name.toLowerCase().includes(input.toLowerCase()) ||
                 airport.IATA.toLowerCase().includes(input.toLowerCase())
             )
-            .slice(0, 4); // Limit to the top 4 matches
+            .slice(0, 4); // Limit to 4 matches
 
-        // Add filtered results to the dropdown
-        matches.forEach((airport) => {
-            const option = document.createElement('option');
-            option.value = airport.IATA;
-            option.textContent = `${airport.Name} (${airport.IATA})`;
-            dropdown.appendChild(option);
-        });
+        // Update the dropdown with filtered results
+        choicesInstance.setChoices(
+            matches.map((airport) => ({
+                value: airport.IATA,
+                label: `${airport.Name} (${airport.IATA})`
+            })),
+            'value',
+            'label',
+            true
+        );
     }
 
-    // Event listener for the origin dropdown
+    // Event listeners for typing input
     originDropdown.addEventListener('input', (event) => {
         const input = event.target.value;
-        filterAirports(input, originDropdown);
+        filterAirports(input, originChoices);
     });
 
-    // Event listener for the destination dropdown
     destinationDropdown.addEventListener('input', (event) => {
         const input = event.target.value;
-        filterAirports(input, destinationDropdown);
+        filterAirports(input, destinationChoices);
     });
 
-    // Set z-index for dropdowns to prevent overlap issues
-    const dropdowns = [originDropdown, destinationDropdown];
-    dropdowns.forEach((dropdown) => {
-        dropdown.style.position = 'relative';
-        dropdown.style.zIndex = '10'; // Ensure it's above other elements
-    });
-
-    await fetchAirportData(); // Fetch the airport data on page load
+    // Fetch airport data on page load
+    await fetchAirportData();
 });
