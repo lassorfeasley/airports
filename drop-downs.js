@@ -21,17 +21,68 @@ document.addEventListener('DOMContentLoaded', function () {
 
   let airportData = [];
 
+  // Attempt to parse as full JSON array
+  async function parseAsFullJSON(text) {
+    try {
+      const data = JSON.parse(text);
+      if (Array.isArray(data)) {
+        return data;
+      } else {
+        // If it's not an array, we still return it, but your code expects an array
+        return Array.isArray(data) ? data : [];
+      }
+    } catch (error) {
+      console.warn('Full JSON parse failed, attempting line-by-line parse.', error);
+      return null;
+    }
+  }
+
+  // Attempt to parse line-by-line (fallback)
+  function parseLineByLine(text) {
+    const lines = text.split('\n');
+    const results = [];
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue; // Skip empty lines
+
+      // Attempt to parse the line
+      try {
+        const obj = JSON.parse(trimmed);
+        // Only push if it's an object (or if you want arrays too, remove this check)
+        if (obj && typeof obj === 'object') {
+          results.push(obj);
+        }
+      } catch (lineError) {
+        console.warn('Skipping invalid JSON line:', lineError, line);
+      }
+    }
+
+    return results;
+  }
+
   // Fetch airport data from the JSON file
   async function fetchAirportData() {
     try {
       const response = await fetch('https://lassorfeasley.github.io/airports/airports.json');
-      airportData = await response.json();
+      const text = await response.text();
+
+      // First try full JSON parse
+      let data = await parseAsFullJSON(text);
+
+      // If full parse failed, try line-by-line
+      if (!data) {
+        data = parseLineByLine(text);
+      }
+
+      airportData = data || [];
     } catch (error) {
       console.error('Error fetching airports data:', error);
+      airportData = [];
     }
   }
 
-  // Filter airports based on user input, excluding Latitude and Longitude from search
+  // Filter airports based on user input
   function filterAirports(query) {
     if (!query) return [];
     const lowerCaseQuery = query.toLowerCase();
@@ -42,7 +93,6 @@ document.addEventListener('DOMContentLoaded', function () {
       const city = (airport.City || '').toLowerCase();
       const country = (airport.Country || '').toLowerCase();
 
-      // Search by IATA, Name, City, and Country only
       return (
         iata.includes(lowerCaseQuery) ||
         name.includes(lowerCaseQuery) ||
@@ -59,14 +109,12 @@ document.addEventListener('DOMContentLoaded', function () {
     airports.forEach((airport) => {
       const suggestion = document.createElement('div');
       suggestion.className = 'dropdown-suggestion';
-      // Display the airport info. Adjust as needed.
-      // For example, including City and Country:
-      suggestion.textContent = `${airport.Name} (${airport.IATA}) - ${airport.City}, ${airport.Country}`;
-      suggestion.dataset.iata = airport.IATA;
+      suggestion.textContent = `${airport.Name || 'Unknown'} (${airport.IATA || 'N/A'}) - ${airport.City || 'No city'}, ${airport.Country || 'No country'}`;
+      suggestion.dataset.iata = airport.IATA || '';
 
       // Add click event to select the suggestion
       suggestion.addEventListener('click', () => {
-        textField.value = airport.IATA;
+        textField.value = airport.IATA || '';
         container.innerHTML = '';
         container.classList.remove('active');
         textField.dispatchEvent(new Event('change'));
