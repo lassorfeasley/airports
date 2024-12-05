@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
         noResultsText: 'No airports found',
         noChoicesText: 'Type to search for an airport...',
         resetScrollPosition: true,
+        renderChoiceLimit: -1, // Show matching results dynamically
     });
 
     const destinationChoices = new Choices(destinationDropdown, {
@@ -24,41 +25,57 @@ document.addEventListener('DOMContentLoaded', function () {
         noResultsText: 'No airports found',
         noChoicesText: 'Type to search for an airport...',
         resetScrollPosition: true,
+        renderChoiceLimit: -1, // Show matching results dynamically
     });
+
+    let airportData = []; // Store the airport data globally
 
     // Fetch the JSON file
     fetch('https://lassorfeasley.github.io/airports/airports.json')
         .then(response => response.json())
         .then(data => {
-            // Format the airport data as choices
-            const airportOptions = data.map(airport => ({
-                value: airport.IATA, // Use IATA code as the value
-                label: `${airport.Name} (${airport.IATA})`,
-            }));
+            airportData = data;
 
-            // Dynamically populate the dropdowns when the user types
-            originDropdown.addEventListener('search', () => {
-                originChoices.setChoices(airportOptions, 'value', 'label', true);
+            // Dynamically load options based on user search input
+            originDropdown.addEventListener('search', (event) => {
+                const searchQuery = event.detail.value.toLowerCase();
+                const filteredAirports = airportData.filter(airport =>
+                    airport.Name.toLowerCase().includes(searchQuery) ||
+                    airport.IATA.toLowerCase().includes(searchQuery)
+                );
+
+                // Dynamically update choices
+                originChoices.clearChoices();
+                originChoices.setChoices(
+                    filteredAirports.map(airport => ({
+                        value: airport.IATA,
+                        label: `${airport.Name} (${airport.IATA})`,
+                    })),
+                    'value',
+                    'label',
+                    true
+                );
             });
 
-            destinationDropdown.addEventListener('search', () => {
-                destinationChoices.setChoices(airportOptions, 'value', 'label', true);
+            destinationDropdown.addEventListener('search', (event) => {
+                const searchQuery = event.detail.value.toLowerCase();
+                const filteredAirports = airportData.filter(airport =>
+                    airport.Name.toLowerCase().includes(searchQuery) ||
+                    airport.IATA.toLowerCase().includes(searchQuery)
+                );
+
+                // Dynamically update choices
+                destinationChoices.clearChoices();
+                destinationChoices.setChoices(
+                    filteredAirports.map(airport => ({
+                        value: airport.IATA,
+                        label: `${airport.Name} (${airport.IATA})`,
+                    })),
+                    'value',
+                    'label',
+                    true
+                );
             });
         })
         .catch(error => console.error('Error fetching airports data:', error));
-
-    // Ensure the dropdowns have the correct z-index
-    function setDropdownStyles() {
-        const dropdownWrappers = document.querySelectorAll('.choices__list--dropdown');
-        dropdownWrappers.forEach(wrapper => {
-            wrapper.style.zIndex = '10';
-        });
-    }
-
-    // Observe DOM changes to ensure z-index styling is applied to dropdowns dynamically
-    const observer = new MutationObserver(setDropdownStyles);
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    // Apply styles on load
-    setDropdownStyles();
 });
