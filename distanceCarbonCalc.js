@@ -6,12 +6,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const carbonOutput = document.getElementById('carbon-output');
     const panelsOutput = document.getElementById('panels-to-offset');
     const classSelector = document.querySelectorAll('input[name="class"]');
-    const tripSelector = document.querySelectorAll('input[name="roundtrip"]');
+    const roundTripCheckbox = document.getElementById('roundtrip-checkbox');
 
     let airportData = [];
     const EARTH_RADIUS = 3958.8; // Radius of Earth in miles
 
-    // Haversine formula to calculate distance between two points
+    // Haversine formula for distance calculation
     function calculateDistance(lat1, lon1, lat2, lon2) {
         const toRadians = (value) => (value * Math.PI) / 180;
 
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Update calculations and outputs
+    // Update calculations
     async function updateCalculation() {
         if (!airportData || airportData.length === 0) {
             console.error('Airport data not loaded.');
@@ -66,10 +66,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const selectedClass = [...classSelector].find(radio => radio.checked);
         const emissionsFactor = selectedClass ? parseFloat(selectedClass.value) : 0.15; // Default to Coach
 
-        const selectedTrip = [...tripSelector].find(radio => radio.checked);
-        const isRoundTrip = selectedTrip ? selectedTrip.value === 'roundtrip' : true;
+        // Determine if the trip is round trip based on checkbox
+        const isRoundTrip = roundTripCheckbox.checked;
 
-        // Calculate distance, carbon emissions, and panels needed
         const distance = calculateDistance(
             parseFloat(origin.Latitude),
             parseFloat(origin.Longitude),
@@ -78,21 +77,20 @@ document.addEventListener('DOMContentLoaded', function () {
         );
 
         const totalDistance = isRoundTrip ? distance * 2 : distance;
-        const carbonEmissionsLbs = totalDistance * emissionsFactor * 2.20462; // Convert to lbs
-        const panelOffset = Math.ceil(carbonEmissionsLbs / 530); // Approx panels needed to offset
+        const carbonEmissionsLbs = totalDistance * emissionsFactor * 2.20462;
+        const panelOffset = Math.ceil(carbonEmissionsLbs / 530);
 
-        // Update the outputs
         distanceOutput.textContent = `Distance: ${totalDistance.toFixed(2)} miles`;
         carbonOutput.textContent = `Carbon Output: ${carbonEmissionsLbs.toFixed(2)} lbs CO₂`;
         panelsOutput.textContent = `Panels Required to Offset: ${panelOffset}`;
     }
 
-    // Attach event listeners to dropdowns and radio buttons
+    // Attach event listeners
     originDropdown.addEventListener('change', updateCalculation);
     destinationDropdown.addEventListener('change', updateCalculation);
     classSelector.forEach(radio => radio.addEventListener('change', updateCalculation));
-    tripSelector.forEach(radio => radio.addEventListener('change', updateCalculation));
+    roundTripCheckbox.addEventListener('change', updateCalculation);
 
-    // Fetch airport data on page load
+    // Fetch airport data
     fetchAirportData();
 });
