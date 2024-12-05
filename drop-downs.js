@@ -3,15 +3,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const originTextField = document.getElementById('origin-dropdown');
   const destinationTextField = document.getElementById('destination-dropdown');
 
-  // Ensure these fields are wrapped in an element with class "text-field-wrapper"
-  // Example HTML structure:
-  // <div class="text-field-wrapper">
-  //   <input type="text" id="origin-dropdown" class="text-field" placeholder="Search origin...">
-  // </div>
-  // <div class="text-field-wrapper">
-  //   <input type="text" id="destination-dropdown" class="text-field" placeholder="Search destination...">
-  // </div>
-
   // Get the wrapper elements (parents of the fields)
   const originWrapper = originTextField.closest('.text-field-wrapper');
   const destinationWrapper = destinationTextField.closest('.text-field-wrapper');
@@ -24,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
   originDropdownContainer.className = 'dropdown-suggestions';
   destinationDropdownContainer.className = 'dropdown-suggestions';
 
-  // Insert dropdown containers into the DOM below each text field
+  // Insert dropdown containers into the DOM
   originWrapper.appendChild(originDropdownContainer);
   destinationWrapper.appendChild(destinationDropdownContainer);
 
@@ -40,20 +31,23 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // Filter airports based on user input
+  // Filter airports based on user input, excluding Latitude and Longitude from search
   function filterAirports(query) {
     if (!query) return [];
     const lowerCaseQuery = query.toLowerCase();
 
     return airportData.filter((airport) => {
-      const iata = airport.IATA || '';
-      const name = airport.Name || '';
-      const city = airport.City || '';
+      const iata = (airport.IATA || '').toLowerCase();
+      const name = (airport.Name || '').toLowerCase();
+      const city = (airport.City || '').toLowerCase();
+      const country = (airport.Country || '').toLowerCase();
 
+      // Search by IATA, Name, City, and Country only
       return (
-        iata.toLowerCase().includes(lowerCaseQuery) ||
-        name.toLowerCase().includes(lowerCaseQuery) ||
-        city.toLowerCase().includes(lowerCaseQuery)
+        iata.includes(lowerCaseQuery) ||
+        name.includes(lowerCaseQuery) ||
+        city.includes(lowerCaseQuery) ||
+        country.includes(lowerCaseQuery)
       );
     });
   }
@@ -65,15 +59,17 @@ document.addEventListener('DOMContentLoaded', function () {
     airports.forEach((airport) => {
       const suggestion = document.createElement('div');
       suggestion.className = 'dropdown-suggestion';
-      suggestion.textContent = `${airport.Name} (${airport.IATA}) - ${airport.City}`;
+      // Display the airport info. Adjust as needed.
+      // For example, including City and Country:
+      suggestion.textContent = `${airport.Name} (${airport.IATA}) - ${airport.City}, ${airport.Country}`;
       suggestion.dataset.iata = airport.IATA;
 
       // Add click event to select the suggestion
       suggestion.addEventListener('click', () => {
         textField.value = airport.IATA;
-        container.innerHTML = ''; // Clear suggestions
-        container.classList.remove('active'); // Hide the dropdown
-        textField.dispatchEvent(new Event('change')); // Trigger a change event
+        container.innerHTML = '';
+        container.classList.remove('active');
+        textField.dispatchEvent(new Event('change'));
       });
 
       container.appendChild(suggestion);
@@ -87,20 +83,21 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // Add input event listeners to text fields
+  // Event listener for origin input
   originTextField.addEventListener('input', () => {
     const filteredAirports = filterAirports(originTextField.value);
     const limitedAirports = filteredAirports.slice(0, 4); // Limit to 4 matches
     populateDropdown(originDropdownContainer, limitedAirports, originTextField);
   });
 
+  // Event listener for destination input
   destinationTextField.addEventListener('input', () => {
     const filteredAirports = filterAirports(destinationTextField.value);
     const limitedAirports = filteredAirports.slice(0, 4); // Limit to 4 matches
     populateDropdown(destinationDropdownContainer, limitedAirports, destinationTextField);
   });
 
-  // Hide dropdown suggestions when clicking outside the input fields or dropdown
+  // Hide dropdown suggestions when clicking outside
   document.addEventListener('click', (event) => {
     if (!originWrapper.contains(event.target)) {
       originDropdownContainer.innerHTML = '';
