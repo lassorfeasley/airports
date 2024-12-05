@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const originDropdownContainer = document.createElement('div');
   const destinationDropdownContainer = document.createElement('div');
 
-  // Add classes for styling
+  // Add classes for styling (Update these to match your CSS if needed)
   originDropdownContainer.className = 'dropdown-suggestions';
   destinationDropdownContainer.className = 'dropdown-suggestions';
 
@@ -28,23 +28,22 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Filter airports based on user input
-function filterAirports(query) {
+  function filterAirports(query) {
     if (!query) return [];
     const lowerCaseQuery = query.toLowerCase();
 
     return airportData.filter((airport) => {
-        const iata = airport.IATA || ''; // Fallback to empty string if undefined
-        const name = airport.Name || '';
-        const city = airport.City || '';
-        
-        return (
-            iata.toLowerCase().includes(lowerCaseQuery) ||
-            name.toLowerCase().includes(lowerCaseQuery) ||
-            city.toLowerCase().includes(lowerCaseQuery)
-        );
-    });
-}
+      const iata = airport.IATA || '';
+      const name = airport.Name || '';
+      const city = airport.City || '';
 
+      return (
+        iata.toLowerCase().includes(lowerCaseQuery) ||
+        name.toLowerCase().includes(lowerCaseQuery) ||
+        city.toLowerCase().includes(lowerCaseQuery)
+      );
+    });
+  }
 
   // Populate dropdown suggestions
   function populateDropdown(container, airports, textField) {
@@ -67,18 +66,21 @@ function filterAirports(query) {
     });
   }
 
-  // Add input event listeners to text fields
+  // Event listener for origin input
   originTextField.addEventListener('input', () => {
     const filteredAirports = filterAirports(originTextField.value);
-    populateDropdown(originDropdownContainer, filteredAirports, originTextField);
+    const limitedAirports = filteredAirports.slice(0, 4); // Show only the top 4 matches
+    populateDropdown(originDropdownContainer, limitedAirports, originTextField);
   });
 
+  // Event listener for destination input
   destinationTextField.addEventListener('input', () => {
     const filteredAirports = filterAirports(destinationTextField.value);
-    populateDropdown(destinationDropdownContainer, filteredAirports, destinationTextField);
+    const limitedAirports = filteredAirports.slice(0, 4); // Show only the top 4 matches
+    populateDropdown(destinationDropdownContainer, limitedAirports, destinationTextField);
   });
 
-  // Hide dropdown suggestions when clicking outside the input
+  // Hide dropdown suggestions when clicking outside the input fields
   document.addEventListener('click', (event) => {
     if (!originTextField.contains(event.target) && !originDropdownContainer.contains(event.target)) {
       originDropdownContainer.innerHTML = '';
