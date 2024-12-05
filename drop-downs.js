@@ -3,26 +3,26 @@ document.addEventListener('DOMContentLoaded', function () {
     const originDropdown = document.getElementById('origin-dropdown');
     const destinationDropdown = document.getElementById('destination-dropdown');
 
-    // Save existing options (preset airports)
-    const presetOptionsOrigin = Array.from(originDropdown.options).map(option => ({
-        value: option.value,
-        label: option.textContent,
-    }));
-    const presetOptionsDestination = Array.from(destinationDropdown.options).map(option => ({
-        value: option.value,
-        label: option.textContent,
-    }));
-
     // Initialize Choices.js for the dropdowns
     const originChoices = new Choices(originDropdown, {
         searchEnabled: true,
         itemSelectText: '',
+        placeholder: true,
+        placeholderValue: 'Type to search for an airport...',
+        shouldSort: false,
+        noResultsText: 'No airports found',
+        noChoicesText: 'Type to search for an airport...',
         resetScrollPosition: true,
     });
 
     const destinationChoices = new Choices(destinationDropdown, {
         searchEnabled: true,
         itemSelectText: '',
+        placeholder: true,
+        placeholderValue: 'Type to search for an airport...',
+        shouldSort: false,
+        noResultsText: 'No airports found',
+        noChoicesText: 'Type to search for an airport...',
         resetScrollPosition: true,
     });
 
@@ -30,19 +30,20 @@ document.addEventListener('DOMContentLoaded', function () {
     fetch('https://lassorfeasley.github.io/airports/airports.json')
         .then(response => response.json())
         .then(data => {
-            // Populate dropdowns with airport data
+            // Format the airport data as choices
             const airportOptions = data.map(airport => ({
                 value: airport.IATA, // Use IATA code as the value
                 label: `${airport.Name} (${airport.IATA})`,
             }));
 
-            // Merge preset options with fetched options
-            const finalOptionsOrigin = [...presetOptionsOrigin, ...airportOptions];
-            const finalOptionsDestination = [...presetOptionsDestination, ...airportOptions];
+            // Dynamically populate the dropdowns when the user types
+            originDropdown.addEventListener('search', () => {
+                originChoices.setChoices(airportOptions, 'value', 'label', true);
+            });
 
-            // Set options dynamically in Choices.js
-            originChoices.setChoices(finalOptionsOrigin, 'value', 'label', true);
-            destinationChoices.setChoices(finalOptionsDestination, 'value', 'label', true);
+            destinationDropdown.addEventListener('search', () => {
+                destinationChoices.setChoices(airportOptions, 'value', 'label', true);
+            });
         })
         .catch(error => console.error('Error fetching airports data:', error));
 
