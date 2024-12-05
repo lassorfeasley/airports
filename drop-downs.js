@@ -3,30 +3,37 @@ document.addEventListener('DOMContentLoaded', function () {
     const originDropdown = document.getElementById('origin-dropdown');
     const destinationDropdown = document.getElementById('destination-dropdown');
 
+    // Initialize Choices.js for the dropdowns
+    const originChoices = new Choices(originDropdown, {
+        searchEnabled: true,
+        itemSelectText: '',
+    });
+
+    const destinationChoices = new Choices(destinationDropdown, {
+        searchEnabled: true,
+        itemSelectText: '',
+    });
+
     // Fetch the JSON file
     fetch('https://lassorfeasley.github.io/airports/airports.json')
         .then(response => response.json())
         .then(data => {
             // Populate dropdowns with airport data
-            data.forEach(airport => {
-                const option = document.createElement('option');
-                option.value = airport.IATA; // Use IATA code as the value
-                option.textContent = `${airport.Name} (${airport.IATA})`;
+            const options = data.map(airport => ({
+                value: airport.IATA, // Use IATA code as the value
+                label: `${airport.Name} (${airport.IATA})`,
+            }));
 
-                // Add the option to both dropdowns
-                originDropdown.appendChild(option.cloneNode(true));
-                destinationDropdown.appendChild(option);
-            });
+            // Set options dynamically in Choices.js
+            originChoices.setChoices(options, 'value', 'label', true);
+            destinationChoices.setChoices(options, 'value', 'label', true);
         })
         .catch(error => console.error('Error fetching airports data:', error));
 
-    // Ensure the dropdowns have the correct z-index and positioning
+    // Ensure the dropdowns have the correct z-index
     function setDropdownStyles() {
-        originDropdown.style.zIndex = '10';
-        originDropdown.style.position = 'relative';
-
-        destinationDropdown.style.zIndex = '10';
-        destinationDropdown.style.position = 'relative';
+        originDropdown.parentNode.style.zIndex = '10';
+        destinationDropdown.parentNode.style.zIndex = '10';
     }
 
     // Set styles on load
