@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         const matches = airportData
             .filter((airport) =>
                 airport.Name.toLowerCase().includes(input.toLowerCase()) ||
+                airport.City.toLowerCase().includes(input.toLowerCase()) ||
                 airport.IATA.toLowerCase().includes(input.toLowerCase())
             )
             .slice(0, 4); // Limit to 4 matches
@@ -39,7 +40,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         airportChoices.setChoices(
             matches.map((airport) => ({
                 value: airport.IATA,
-                label: `${airport.Name} (${airport.IATA})`
+                label: `${airport.Name} (${airport.City}, ${airport.IATA})`
             })),
             'value',
             'label',
