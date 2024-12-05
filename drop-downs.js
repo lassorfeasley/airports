@@ -28,16 +28,23 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Filter airports based on user input
-  function filterAirports(query) {
+function filterAirports(query) {
     if (!query) return [];
     const lowerCaseQuery = query.toLowerCase();
-    return airportData.filter(
-      (airport) =>
-        airport.IATA.toLowerCase().includes(lowerCaseQuery) ||
-        airport.Name.toLowerCase().includes(lowerCaseQuery) ||
-        airport.City.toLowerCase().includes(lowerCaseQuery)
-    );
-  }
+
+    return airportData.filter((airport) => {
+        const iata = airport.IATA || ''; // Fallback to empty string if undefined
+        const name = airport.Name || '';
+        const city = airport.City || '';
+        
+        return (
+            iata.toLowerCase().includes(lowerCaseQuery) ||
+            name.toLowerCase().includes(lowerCaseQuery) ||
+            city.toLowerCase().includes(lowerCaseQuery)
+        );
+    });
+}
+
 
   // Populate dropdown suggestions
   function populateDropdown(container, airports, textField) {
