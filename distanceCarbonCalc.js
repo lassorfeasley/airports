@@ -9,21 +9,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const tripSelector = document.querySelectorAll('input[name="roundtrip"]');
 
     let airportData = [];
-    const EARTH_RADIUS = 3958.8; // Miles
+    const EARTH_RADIUS = 3958.8; // Radius of Earth in miles
 
-    // Mapbox setup
-    mapboxgl.accessToken = 'pk.eyJ1IjoibGFzc29yLWZlYXNsZXkiLCJhIjoiY2xpMGZjNXkwMWU0dDNtbjAyNTQycGtvdiJ9.5gQH73uj-MnVtC_evAvdvw'; // Replace with your Mapbox token
-    const map = new mapboxgl.Map({
-        container: 'map', // ID of the map div in Webflow
-        style: 'mapbox://styles/lassor-feasley/cloonclal00bj01ns6c7q6aay',
-        center: [0, 20], // Centered for a global view
-        zoom: 1.5
-    });
-
-    // Markers and route line
-    let originMarker, destinationMarker, routeLine;
-
-    // Haversine formula for distance calculation
+    // Haversine formula to calculate distance between two points
     function calculateDistance(lat1, lon1, lat2, lon2) {
         const toRadians = (value) => (value * Math.PI) / 180;
 
@@ -37,52 +25,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return EARTH_RADIUS * c; // Distance in miles
     }
 
-    // Draw the great-circle route using Turf.js
-    function drawRoute(lat1, lon1, lat2, lon2) {
-        if (routeLine) {
-            map.removeLayer('route');
-            map.removeSource('route');
-        }
-
-        // Create a GeoJSON LineString for the route
-        const route = turf.greatCircle([lon1, lat1], [lon2, lat2], {
-            npoints: 100
-        });
-
-        // Add the route to the map
-        map.addSource('route', {
-            type: 'geojson',
-            data: route
-        });
-
-        map.addLayer({
-            id: 'route',
-            type: 'line',
-            source: 'route',
-            layout: {
-                'line-cap': 'round',
-                'line-join': 'round'
-            },
-            paint: {
-                'line-color': '#ff0000',
-                'line-width': 2
-            }
-        });
-
-        // Add origin and destination markers
-        if (!originMarker) {
-            originMarker = new mapboxgl.Marker({ color: 'green' }).setLngLat([lon1, lat1]).addTo(map);
-        } else {
-            originMarker.setLngLat([lon1, lat1]);
-        }
-
-        if (!destinationMarker) {
-            destinationMarker = new mapboxgl.Marker({ color: 'blue' }).setLngLat([lon2, lat2]).addTo(map);
-        } else {
-            destinationMarker.setLngLat([lon2, lat2]);
-        }
-    }
-
     // Fetch airport data
     async function fetchAirportData() {
         try {
@@ -93,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Update calculations
+    // Update calculations and outputs
     async function updateCalculation() {
         if (!airportData || airportData.length === 0) {
             console.error('Airport data not loaded.');
@@ -127,6 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const selectedTrip = [...tripSelector].find(radio => radio.checked);
         const isRoundTrip = selectedTrip ? selectedTrip.value === 'roundtrip' : true;
 
+        // Calculate distance, carbon emissions, and panels needed
         const distance = calculateDistance(
             parseFloat(origin.Latitude),
             parseFloat(origin.Longitude),
@@ -135,21 +78,21 @@ document.addEventListener('DOMContentLoaded', function () {
         );
 
         const totalDistance = isRoundTrip ? distance * 2 : distance;
-        const carbonEmissionsLbs = totalDistance * emissionsFactor * 2.20462;
-        const panelOffset = Math.ceil(carbonEmissionsLbs / 530);
+        const carbonEmissionsLbs = totalDistance * emissionsFactor * 2.20462; // Convert to lbs
+        const panelOffset = Math.ceil(carbonEmissionsLbs / 530); // Approx panels needed to offset
 
+        // Update the outputs
         distanceOutput.textContent = `Distance: ${totalDistance.toFixed(2)} miles`;
         carbonOutput.textContent = `Carbon Output: ${carbonEmissionsLbs.toFixed(2)} lbs CO₂`;
         panelsOutput.textContent = `Panels Required to Offset: ${panelOffset}`;
-
-        drawRoute(parseFloat(origin.Latitude), parseFloat(origin.Longitude),
-            parseFloat(destination.Latitude), parseFloat(destination.Longitude));
     }
 
+    // Attach event listeners to dropdowns and radio buttons
     originDropdown.addEventListener('change', updateCalculation);
     destinationDropdown.addEventListener('change', updateCalculation);
     classSelector.forEach(radio => radio.addEventListener('change', updateCalculation));
     tripSelector.forEach(radio => radio.addEventListener('change', updateCalculation));
 
+    // Fetch airport data on page load
     fetchAirportData();
 });
