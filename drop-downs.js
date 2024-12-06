@@ -145,13 +145,25 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
     }
 
-    // Attach input events
-    originInput.addEventListener('input', () => {
-        filterAirports(originInput, originDropdown, originInput.value);
-    });
+    // Additional logging for carbon cost, panels to offset, class selection, and trip type selection
+    function calculateAdditionalMetrics() {
+        const distance = calculateDistance(originLat, originLng, destinationLat, destinationLng);
+        const carbonCost = calculateCarbonCost(distance);
+        const panelsToOffset = calculatePanelsToOffset(carbonCost);
+        const classSelection = document.getElementById('class-selection').value;
+        const tripType = document.querySelector('input[name="trip-type"]:checked').value;
 
-    destinationInput.addEventListener('input', () => {
-        filterAirports(destinationInput, destinationDropdown, destinationInput.value);
+        console.log(`Distance: ${distance} km`);
+        console.log(`Carbon Cost: ${carbonCost} kg CO2`);
+        console.log(`Panels to Offset: ${panelsToOffset}`);
+        console.log(`Class Selection: ${classSelection}`);
+        console.log(`Trip Type: ${tripType}`);
+    }
+
+    // Attach input events for class selection and trip type
+    document.getElementById('class-selection').addEventListener('change', calculateAdditionalMetrics);
+    document.querySelectorAll('input[name="trip-type"]').forEach(radio => {
+        radio.addEventListener('change', calculateAdditionalMetrics);
     });
 
     originInput.addEventListener('blur', () => {
