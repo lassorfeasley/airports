@@ -74,6 +74,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 input.setAttribute('data-latitude', airport.Latitude);
                 input.setAttribute('data-longitude', airport.Longitude);
                 dropdown.style.display = 'none';
+                console.log(`Selected Origin: ${airport.AirportName} (${airport.IATA})`);
                 updateMap();
             });
 
@@ -83,29 +84,31 @@ document.addEventListener('DOMContentLoaded', async function () {
         dropdown.style.display = filteredAirports.length ? 'block' : 'none';
     }
 
-// Update the map
-function updateMap() {
-    const originLat = parseFloat(originInput.getAttribute('data-latitude'));
-    const originLng = parseFloat(originInput.getAttribute('data-longitude'));
-    const destinationLat = parseFloat(destinationInput.getAttribute('data-latitude'));
-    const destinationLng = parseFloat(destinationInput.getAttribute('data-longitude'));
+    // Update the map
+    function updateMap() {
+        const originLat = parseFloat(originInput.getAttribute('data-latitude'));
+        const originLng = parseFloat(originInput.getAttribute('data-longitude'));
+        const destinationLat = parseFloat(destinationInput.getAttribute('data-latitude'));
+        const destinationLng = parseFloat(destinationInput.getAttribute('data-longitude'));
 
-    if (!isNaN(originLat) && !isNaN(destinationLat)) {
-        drawRoute(originLat, originLng, destinationLat, destinationLng);
-        // Trigger the function to update other outputs here if needed
+        if (!isNaN(originLat) && !isNaN(destinationLat)) {
+            console.log(`Origin Coordinates: (${originLat}, ${originLng})`);
+            console.log(`Destination Coordinates: (${destinationLat}, ${destinationLng})`);
+            drawRoute(originLat, originLng, destinationLat, destinationLng);
+            // Trigger the function to update other outputs here if needed
+        }
     }
-}
 
-// Attach input events
-originInput.addEventListener('input', () => {
-    filterAirports(originInput, originDropdown, originInput.value);
-    updateMap(); // Ensure map and outputs update after changing origin
-});
+    // Attach input events
+    originInput.addEventListener('input', () => {
+        filterAirports(originInput, originDropdown, originInput.value);
+        updateMap(); // Ensure map and outputs update after changing origin
+    });
 
-destinationInput.addEventListener('input', () => {
-    filterAirports(destinationInput, destinationDropdown, destinationInput.value);
-    updateMap(); // Ensure map and outputs update after changing destination
-});
+    destinationInput.addEventListener('input', () => {
+        filterAirports(destinationInput, destinationDropdown, destinationInput.value);
+        updateMap(); // Ensure map and outputs update after changing destination
+    });
 
     // Draw route on map
     function drawRoute(lat1, lng1, lat2, lng2) {
