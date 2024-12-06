@@ -95,20 +95,9 @@ document.addEventListener('DOMContentLoaded', async function () {
             console.log(`Origin Coordinates: (${originLat}, ${originLng})`);
             console.log(`Destination Coordinates: (${destinationLat}, ${destinationLng})`);
             drawRoute(originLat, originLng, destinationLat, destinationLng);
-            // Trigger the function to update other outputs here if needed
+            calculateAdditionalMetrics(originLat, originLng, destinationLat, destinationLng);
         }
     }
-
-    // Attach input events
-    originInput.addEventListener('input', () => {
-        filterAirports(originInput, originDropdown, originInput.value);
-        updateMap(); // Ensure map and outputs update after changing origin
-    });
-
-    destinationInput.addEventListener('input', () => {
-        filterAirports(destinationInput, destinationDropdown, destinationInput.value);
-        updateMap(); // Ensure map and outputs update after changing destination
-    });
 
     // Draw route on map
     function drawRoute(lat1, lng1, lat2, lng2) {
@@ -150,19 +139,20 @@ document.addEventListener('DOMContentLoaded', async function () {
         const distance = calculateDistance(originLat, originLng, destinationLat, destinationLng);
         const carbonCost = calculateCarbonCost(distance);
         const panelsToOffset = calculatePanelsToOffset(carbonCost);
-        const classSelectionElement = document.getElementById('class-selection');
-        const tripTypeElement = document.querySelector('input[name="trip-type"]:checked');
 
+        const classSelectionElement = document.getElementById('class-selection');
         if (classSelectionElement) {
             const classSelection = classSelectionElement.value;
             console.log(`Class Selection: ${classSelection}`);
             classSelectionElement.addEventListener('change', () => console.log(`Class Selection: ${classSelectionElement.value}`));
         }
 
-        if (tripTypeElement) {
-            const tripType = tripTypeElement.value;
-            console.log(`Trip Type: ${tripType}`);
-            document.querySelectorAll('input[name="trip-type"]').forEach(radio => {
+        const tripTypeElements = document.querySelectorAll('input[name="trip-type"]');
+        if (tripTypeElements.length > 0) {
+            tripTypeElements.forEach(radio => {
+                if (radio.checked) {
+                    console.log(`Trip Type: ${radio.value}`);
+                }
                 radio.addEventListener('change', () => console.log(`Trip Type: ${radio.value}`));
             });
         }
@@ -172,7 +162,17 @@ document.addEventListener('DOMContentLoaded', async function () {
         console.log(`Panels to Offset: ${panelsToOffset}`);
     }
 
-    // Ensure map and outputs update after changing origin or destination
+    // Attach input events
+    originInput.addEventListener('input', () => {
+        filterAirports(originInput, originDropdown, originInput.value);
+        updateMap(); // Ensure map and outputs update after changing origin
+    });
+
+    destinationInput.addEventListener('input', () => {
+        filterAirports(destinationInput, destinationDropdown, destinationInput.value);
+        updateMap(); // Ensure map and outputs update after changing destination
+    });
+
     originInput.addEventListener('blur', () => {
         setTimeout(() => originDropdown.style.display = 'none', 200);
     });
