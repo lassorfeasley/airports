@@ -59,6 +59,8 @@ function attachSearchEvent(choicesInstance, airportData) {
   const searchInput = choicesInstance.input.element;
   searchInput.addEventListener('input', function () {
     const searchTerm = searchInput.value.toLowerCase();
+    console.log('Search term:', searchTerm); // Debugging log
+
     if (searchTerm.length > 0) {
       // Filter the top 4 results based on name, municipality, or iata_code
       const filteredAirports = airportData.filter(airport =>
@@ -67,15 +69,19 @@ function attachSearchEvent(choicesInstance, airportData) {
         airport.iata_code.toLowerCase().includes(searchTerm)
       ).slice(0, 4);
 
-      const choiceOptions = filteredAirports.map(airport => {
-        return {
-          value: `${airport.name} (${airport.iata_code})`,
-          label: `${airport.name} (${airport.iata_code}) - ${airport.municipality}`
-        };
-      });
+      console.log('Filtered Airports:', filteredAirports); // Debugging log
 
-      choicesInstance.clearChoices(); // Clear existing choices before setting new ones
-      choicesInstance.setChoices(choiceOptions, 'value', 'label', true);
+      if (filteredAirports.length > 0) {
+        choicesInstance.clearStore(); // Properly clear choices and reset internal state
+        filteredAirports.forEach(airport => {
+          choicesInstance.setChoices([{
+            value: `${airport.name} (${airport.iata_code})`,
+            label: `${airport.name} (${airport.iata_code}) - ${airport.municipality}`
+          }], 'value', 'label', false);
+        });
+      } else {
+        choicesInstance.clearChoices();
+      }
     } else {
       choicesInstance.clearChoices();
     }
@@ -85,6 +91,7 @@ function attachSearchEvent(choicesInstance, airportData) {
 // Main function to initialize the dropdowns with fetched data
 (async function () {
   const airportData = await fetchAirports();
+  console.log('Airport data loaded:', airportData); // Debugging log
 
   attachSearchEvent(originDropdown, airportData);
   attachSearchEvent(destinationDropdown, airportData);
