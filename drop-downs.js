@@ -3,8 +3,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     const destinationInput = document.getElementById('destination-dropdown');
     const originDropdown = document.createElement('div');
     const destinationDropdown = document.createElement('div');
-    
-    // Styles for dropdown
+
+    // Dropdown styles
     originDropdown.style.position = "absolute";
     originDropdown.style.zIndex = "10";
     originDropdown.style.background = "#fff";
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     originDropdown.style.maxHeight = "200px";
     originDropdown.style.overflowY = "auto";
     originDropdown.style.display = "none";
-    
+
     destinationDropdown.style.position = "absolute";
     destinationDropdown.style.zIndex = "10";
     destinationDropdown.style.background = "#fff";
@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     destinationDropdown.style.overflowY = "auto";
     destinationDropdown.style.display = "none";
 
-    // Insert the dropdowns right after the inputs
     originInput.parentNode.insertBefore(originDropdown, originInput.nextSibling);
     destinationInput.parentNode.insertBefore(destinationDropdown, destinationInput.nextSibling);
 
@@ -48,20 +47,21 @@ document.addEventListener('DOMContentLoaded', async function () {
                     Latitude: parseFloat(columns[4]), // Latitude
                     Longitude: parseFloat(columns[5]) // Longitude
                 };
-            }).filter(airport => airport.IATA && airport.City); // Only include valid entries
+            }).filter(airport => airport.IATA && airport.City); // Only valid airports
         } catch (error) {
             console.error('Error fetching airport data:', error);
         }
     }
 
-    // Filter and display airports
+    // Filter airports and update dropdown
     function filterAirports(input, dropdown, query) {
         dropdown.innerHTML = '';
-        const filteredAirports = airportData.filter(airport => 
+        const filteredAirports = airportData.filter(airport =>
             airport.AirportName.toLowerCase().includes(query.toLowerCase()) ||
             airport.City.toLowerCase().includes(query.toLowerCase()) ||
             airport.IATA.toLowerCase().includes(query.toLowerCase())
         );
+
         filteredAirports.forEach(airport => {
             const option = document.createElement('div');
             option.textContent = `${airport.AirportName} (${airport.IATA}) - ${airport.City}`;
@@ -71,25 +71,78 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             option.addEventListener('click', () => {
                 input.value = `${airport.AirportName} (${airport.IATA})`;
+                input.setAttribute('data-latitude', airport.Latitude);
+                input.setAttribute('data-longitude', airport.Longitude);
                 dropdown.style.display = 'none';
+                updateMap();
             });
 
             dropdown.appendChild(option);
         });
+
         dropdown.style.display = filteredAirports.length ? 'block' : 'none';
     }
 
-    // Attach event listeners
+    // Update the map
+    function updateMap() {
+        const originLat = parseFloat(originInput.getAttribute('data-latitude'));
+        const originLng = parseFloat(originInput.getAttribute('data-longitude'));
+        const destinationLat = parseFloat(destinationInput.getAttribute('data-latitude'));
+        const destinationLng = parseFloat(destinationInput.getAttribute('data-longitude'));
+
+        if (!isNaN(originLat) && !isNaN(destinationLat)) {
+            drawRoute(originLat, originLng, destinationLat, destinationLng);
+        }
+    }
+
+    // Draw route on map
+    function drawRoute(lat1, lng1, lat2, lng2) {
+        if (map.getLayer('route')) {
+            map.removeLayer('route');
+            map.removeSource('route');
+        }
+
+        const route = {
+            type: 'Feature',
+            geometry: {
+                type: 'LineString',
+                coordinates: [[lng1, lat1], [lng2, lat2]]
+            }
+        };
+
+        map.addSource('route', {
+            type: 'geojson',
+            data: route
+        });
+
+        map.addLayer({
+            id: 'route',
+            type: 'line',
+            source: 'route',
+            layout: {
+                'line-cap': 'round',
+                'line-join': 'round'
+            },
+            paint: {
+                'line-color': '#ff0000',
+                'line-width': 2
+            }
+        });
+    }
+
+    // Attach input events
     originInput.addEventListener('input', () => {
         filterAirports(originInput, originDropdown, originInput.value);
     });
+
     destinationInput.addEventListener('input', () => {
         filterAirports(destinationInput, destinationDropdown, destinationInput.value);
     });
 
     originInput.addEventListener('blur', () => {
-        setTimeout(() => originDropdown.style.display = 'none', 200); // Delay to allow click
+        setTimeout(() => originDropdown.style.display = 'none', 200);
     });
+
     destinationInput.addEventListener('blur', () => {
         setTimeout(() => destinationDropdown.style.display = 'none', 200);
     });
