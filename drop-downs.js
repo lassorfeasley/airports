@@ -12,7 +12,7 @@ const originDropdown = new Choices(`#${originFieldId}`, {
   placeholder: true,
   placeholderValue: 'Enter airport name',
   searchResultLimit: 4,
-  searchChoices: false,
+  searchChoices: true,
   removeItemButton: false, // Ensure only one selection is allowed
   maxItemCount: 1 // Limit to one selection
 });
@@ -23,7 +23,7 @@ const destinationDropdown = new Choices(`#${destinationFieldId}`, {
   placeholder: true,
   placeholderValue: 'Enter airport name',
   searchResultLimit: 4,
-  searchChoices: false,
+  searchChoices: true,
   removeItemButton: false, // Ensure only one selection is allowed
   maxItemCount: 1 // Limit to one selection
 });
@@ -74,6 +74,7 @@ function attachSearchEvent(choicesInstance, airportData) {
         };
       });
 
+      choicesInstance.clearChoices(); // Clear existing choices before setting new ones
       choicesInstance.setChoices(choiceOptions, 'value', 'label', true);
     } else {
       choicesInstance.clearChoices();
