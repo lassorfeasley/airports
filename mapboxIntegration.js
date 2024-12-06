@@ -8,7 +8,6 @@ const map = new mapboxgl.Map({
     projection: 'equirectangular' // Set projection to Equirectangular
 });
 
-
 // Store markers and line layer globally
 let originMarker = null;
 let destinationMarker = null;
@@ -99,9 +98,23 @@ document.addEventListener('change', async function () {
     const destinationCode = document.getElementById('destination-dropdown').value.trim();
 
     if (originCode && destinationCode) {
-        const response = await fetch('https://lassorfeasley.github.io/airports/airports.json');
-        const airportData = await response.json();
+        const response = await fetch('https://davidmegginson.github.io/ourairports-data/airports.csv');
+        const csvText = await response.text();
 
+        // Parse CSV data
+        const rows = csvText.split('\n').slice(1); // Skip header
+        const airportData = rows.map(row => {
+            const columns = row.split(',');
+            return {
+                Name: columns[3]?.replace(/"/g, ''), // Airport name
+                City: columns[10]?.replace(/"/g, ''), // City
+                IATA: columns[13]?.replace(/"/g, ''), // IATA code
+                Latitude: parseFloat(columns[4]), // Latitude
+                Longitude: parseFloat(columns[5]) // Longitude
+            };
+        });
+
+        // Find origin and destination airports
         const origin = airportData.find(airport => airport.IATA === originCode);
         const destination = airportData.find(airport => airport.IATA === destinationCode);
 
