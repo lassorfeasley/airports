@@ -146,26 +146,33 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     // Additional logging for carbon cost, panels to offset, class selection, and trip type selection
-    function calculateAdditionalMetrics() {
+    function calculateAdditionalMetrics(originLat, originLng, destinationLat, destinationLng) {
         const distance = calculateDistance(originLat, originLng, destinationLat, destinationLng);
         const carbonCost = calculateCarbonCost(distance);
         const panelsToOffset = calculatePanelsToOffset(carbonCost);
-        const classSelection = document.getElementById('class-selection').value;
-        const tripType = document.querySelector('input[name="trip-type"]:checked').value;
+        const classSelectionElement = document.getElementById('class-selection');
+        const tripTypeElement = document.querySelector('input[name="trip-type"]:checked');
+
+        if (classSelectionElement) {
+            const classSelection = classSelectionElement.value;
+            console.log(`Class Selection: ${classSelection}`);
+            classSelectionElement.addEventListener('change', () => console.log(`Class Selection: ${classSelectionElement.value}`));
+        }
+
+        if (tripTypeElement) {
+            const tripType = tripTypeElement.value;
+            console.log(`Trip Type: ${tripType}`);
+            document.querySelectorAll('input[name="trip-type"]').forEach(radio => {
+                radio.addEventListener('change', () => console.log(`Trip Type: ${radio.value}`));
+            });
+        }
 
         console.log(`Distance: ${distance} km`);
         console.log(`Carbon Cost: ${carbonCost} kg CO2`);
         console.log(`Panels to Offset: ${panelsToOffset}`);
-        console.log(`Class Selection: ${classSelection}`);
-        console.log(`Trip Type: ${tripType}`);
     }
 
-    // Attach input events for class selection and trip type
-    document.getElementById('class-selection').addEventListener('change', calculateAdditionalMetrics);
-    document.querySelectorAll('input[name="trip-type"]').forEach(radio => {
-        radio.addEventListener('change', calculateAdditionalMetrics);
-    });
-
+    // Ensure map and outputs update after changing origin or destination
     originInput.addEventListener('blur', () => {
         setTimeout(() => originDropdown.style.display = 'none', 200);
     });
