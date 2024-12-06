@@ -12,7 +12,9 @@ const originDropdown = new Choices(`#${originFieldId}`, {
   placeholder: true,
   placeholderValue: 'Enter airport name',
   searchResultLimit: 4,
-  searchChoices: false
+  searchChoices: false,
+  removeItemButton: false, // Ensure only one selection is allowed
+  maxItemCount: 1 // Limit to one selection
 });
 
 const destinationDropdown = new Choices(`#${destinationFieldId}`, {
@@ -21,7 +23,9 @@ const destinationDropdown = new Choices(`#${destinationFieldId}`, {
   placeholder: true,
   placeholderValue: 'Enter airport name',
   searchResultLimit: 4,
-  searchChoices: false
+  searchChoices: false,
+  removeItemButton: false, // Ensure only one selection is allowed
+  maxItemCount: 1 // Limit to one selection
 });
 
 // Fetching airport data from the CSV file
