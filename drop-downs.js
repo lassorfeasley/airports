@@ -55,10 +55,10 @@ function populateDropdownWithPopular(dropdownContainer) {
     option.style.padding = '8px';
     option.style.cursor = 'pointer';
     option.style.borderBottom = '1px solid #ddd';
-    option.textContent = `${airport.name} (${airport.iata_code}) - ${airport.municipality}`;
+    $1`${airport.name} (${airport.iata_code})`;
     option.addEventListener('click', function () {
       const inputElement = dropdownContainer.previousElementSibling;
-      inputElement.value = `${airport.name} (${airport.iata_code})`;
+      $1`${airport.name}`;
       dropdownContainer.style.display = 'none';
     });
     dropdownContainer.appendChild(option);
@@ -109,9 +109,9 @@ function attachSearchEvent(inputFieldId, airportData) {
           option.style.padding = '8px';
           option.style.cursor = 'pointer';
           option.style.borderBottom = '1px solid #ddd';
-          option.textContent = `${airport.name} (${airport.iata_code}) - ${airport.municipality}`;
+          $1`${airport.name} (${airport.iata_code})`;
           option.addEventListener('click', function () {
-            inputElement.value = `${airport.name} (${airport.iata_code})`;
+            $1`${airport.name}`;
             dropdownContainer.style.display = 'none';
           });
           dropdownContainer.appendChild(option);
