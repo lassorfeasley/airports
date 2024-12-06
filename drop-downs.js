@@ -61,11 +61,15 @@ function attachSearchEvent(inputFieldId, airportData) {
   dropdownContainer.style.border = '1px solid #ccc';
   dropdownContainer.style.width = `${inputElement.offsetWidth}px`;
   dropdownContainer.style.display = 'none';
+  dropdownContainer.style.maxHeight = '150px';
+  dropdownContainer.style.overflowY = 'auto'; // Add scroll if there are many options
   inputElement.parentNode.appendChild(dropdownContainer);
 
   inputElement.addEventListener('input', function () {
     const searchTerm = inputElement.value.toLowerCase();
     dropdownContainer.innerHTML = '';
+    console.log('User input:', searchTerm); // Debugging log
+
     if (searchTerm.length > 0) {
       // Filter the top 4 results based on name, municipality, or iata_code
       const filteredAirports = airportData.filter(airport =>
@@ -74,12 +78,15 @@ function attachSearchEvent(inputFieldId, airportData) {
         airport.iata_code.toLowerCase().includes(searchTerm)
       ).slice(0, 4);
 
+      console.log('Filtered Airports:', filteredAirports); // Debugging log
+
       if (filteredAirports.length > 0) {
         filteredAirports.forEach(airport => {
           const option = document.createElement('div');
           option.classList.add('dropdown-option');
           option.style.padding = '8px';
           option.style.cursor = 'pointer';
+          option.style.borderBottom = '1px solid #ddd';
           option.textContent = `${airport.name} (${airport.iata_code}) - ${airport.municipality}`;
           option.addEventListener('click', function () {
             inputElement.value = `${airport.name} (${airport.iata_code})`;
@@ -88,6 +95,8 @@ function attachSearchEvent(inputFieldId, airportData) {
           dropdownContainer.appendChild(option);
         });
         dropdownContainer.style.display = 'block';
+        dropdownContainer.style.top = `${inputElement.offsetTop + inputElement.offsetHeight}px`;
+        dropdownContainer.style.left = `${inputElement.offsetLeft}px`;
       } else {
         dropdownContainer.style.display = 'none';
       }
