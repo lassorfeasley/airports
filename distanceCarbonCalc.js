@@ -18,7 +18,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
         Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
         Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // Distance in kilometers
+    return R * c; // Distance in miles
 }
 
 // Main function to get coordinates and calculate distance
@@ -49,5 +49,12 @@ function calculateAndDisplayDistance() {
 }
 
 // Event listeners for when the user selects an airport
-document.getElementById(originFieldId).addEventListener('change', calculateAndDisplayDistance);
-document.getElementById(destinationFieldId).addEventListener('change', calculateAndDisplayDistance);
+document.getElementById(originFieldId).addEventListener('input', calculateAndDisplayDistance);
+document.getElementById(destinationFieldId).addEventListener('input', calculateAndDisplayDistance);
+
+// Additional listener to handle selection from dropdown options
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('dropdown-option')) {
+        calculateAndDisplayDistance(); // Call the function when an option is selected
+    }
+});
