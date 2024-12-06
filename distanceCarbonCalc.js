@@ -10,7 +10,7 @@ const totalDistanceFieldId = 'Total-distance';
 
 // Function to calculate the distance between two coordinates using the Haversine formula
 function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Radius of the Earth in kilometers
+    const R = 3958.8; // Radius of the Earth in miles
     const dLat = (lat2 - lat1) * (Math.PI / 180);
     const dLon = (lon2 - lon1) * (Math.PI / 180);
     const a =
@@ -38,11 +38,11 @@ function calculateAndDisplayDistance() {
         const distance = calculateDistance(originLatitude, originLongitude, destinationLatitude, destinationLongitude);
 
         // Display coordinates in the Webflow text boxes
-        document.getElementById(originCoordinatesFieldId).textContent = `Lat: ${originLatitude}, Lon: ${originLongitude}`;
-        document.getElementById(destinationCoordinatesFieldId).textContent = `Lat: ${destinationLatitude}, Lon: ${destinationLongitude}`;
+        document.getElementById(originCoordinatesFieldId).textContent = `Lat: ${originLatitude.toFixed(4)}, Lon: ${originLongitude.toFixed(4)}`;
+        document.getElementById(destinationCoordinatesFieldId).textContent = `Lat: ${destinationLatitude.toFixed(4)}, Lon: ${destinationLongitude.toFixed(4)}`;
 
         // Display distance in the Webflow text box
-        document.getElementById(totalDistanceFieldId).textContent = `${distance.toFixed(2)} km`;
+        document.getElementById(totalDistanceFieldId).textContent = `${distance.toFixed(2)} miles`;
     } else {
         console.log('Please select both origin and destination airports.');
     }
