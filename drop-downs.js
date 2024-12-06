@@ -47,11 +47,9 @@ function parseCSV(data) {
   return airportList;
 }
 
-// Populate dropdown with popular airports
-function populateDropdownWithPopular(dropdownContainer) {
-    dropdownContainer.innerHTML = ''; // Clear existing options
-
-    popularAirports.forEach((airport) => {
+// Populate dropdown with filtered airports
+if (filteredAirports.length > 0) {
+    filteredAirports.forEach((airport) => {
         const option = document.createElement('div');
         option.classList.add('dropdown-option');
         option.style.padding = '8px';
@@ -59,22 +57,29 @@ function populateDropdownWithPopular(dropdownContainer) {
         option.style.borderBottom = '1px solid #ddd';
         option.textContent = `${airport.name} (${airport.iata_code})`;
         
-        // Fix: Correctly reference the corresponding dropdown input
+        // Fix: Get the correct input element reference within the click event
         option.addEventListener('click', function () {
-            const inputElement = dropdownContainer.previousElementSibling; // Reference the correct input element
+            const inputElement = dropdownContainer.previousElementSibling; // Correctly reference the dropdown input element
+
+            // Make sure the inputElement is valid before assigning values
             if (inputElement) {
                 inputElement.dataset.iataCode = airport.iata_code;
                 inputElement.dataset.latitude = airport.latitude_deg;
                 inputElement.dataset.longitude = airport.longitude_deg;
-                inputElement.value = `${airport.name}`; // Show only airport name after selection
+                inputElement.value = `${airport.name}`; // Show only the airport name after selection
+
+                // Hide the dropdown after selecting an option
                 dropdownContainer.style.display = 'none';
             } else {
-                console.error("Input element reference is missing or incorrect");
+                console.error("Failed to reference the input element for assigning airport data.");
             }
         });
+
+        // Append each option to the dropdown container
         dropdownContainer.appendChild(option);
     });
 }
+
 
 
 
