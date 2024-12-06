@@ -43,7 +43,7 @@ function parseCSV(data) {
 
   for (let i = 1; i < lines.length; i++) {
     const fields = lines[i].split(',');
-    if (fields[2] === '"large_airport"') { // Only use large airports
+    if (fields[2] === '"large_airport"' && fields[13]) { // Only use large airports with valid IATA codes
       airportList.push({
         name: fields[3].replace(/"/g, ''),
         municipality: fields[10].replace(/"/g, ''),
@@ -56,7 +56,7 @@ function parseCSV(data) {
 
 // Attach event listeners to origin and destination dropdowns
 function attachSearchEvent(choicesInstance, airportData) {
-  const searchInput = choicesInstance.input;
+  const searchInput = choicesInstance.input.element;
   searchInput.addEventListener('input', function () {
     const searchTerm = searchInput.value.toLowerCase();
     if (searchTerm.length > 0) {
