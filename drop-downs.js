@@ -36,10 +36,12 @@ function parseCSV(data) {
     const fields = lines[i].split(',');
     if (fields[2] === '"large_airport"' && fields[13]) { // Only use large airports with valid IATA codes
       airportList.push({
-        name: fields[3].replace(/"/g, ''),
-        municipality: fields[10].replace(/"/g, ''),
-        iata_code: fields[13].replace(/"/g, ''),
-      });
+      name: fields[3].replace(/"/g, ''),
+      municipality: fields[10].replace(/"/g, ''),
+      iata_code: fields[13].replace(/"/g, ''),
+      latitude_deg: parseFloat(fields[4]),
+      longitude_deg: parseFloat(fields[5]),
+    });
     }
   }
   return airportList;
@@ -58,6 +60,8 @@ function populateDropdownWithPopular(dropdownContainer) {
     option.textContent = `${airport.name} (${airport.iata_code})`;
     option.addEventListener('click', function () {
 $1  inputElement.dataset.iataCode = airport.iata_code;
+  inputElement.dataset.latitude = airport.latitude_deg;
+  inputElement.dataset.longitude = airport.longitude_deg;
   dropdownContainer.style.display = 'none';
     });
     dropdownContainer.appendChild(option);
@@ -111,6 +115,8 @@ function attachSearchEvent(inputFieldId, airportData) {
           option.textContent = `${airport.name} (${airport.iata_code})`;
           option.addEventListener('click', function () {
 $1  inputElement.dataset.iataCode = airport.iata_code;
+  inputElement.dataset.latitude = airport.latitude_deg;
+  inputElement.dataset.longitude = airport.longitude_deg;
   dropdownContainer.style.display = 'none';
           });
           dropdownContainer.appendChild(option);
