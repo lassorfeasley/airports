@@ -7,23 +7,19 @@ const destinationFieldId = 'destination-dropdown';
 
 // Choices.js initialization for the dropdowns
 const originDropdown = new Choices(`#${originFieldId}`, {
-  searchEnabled: true,
+  searchEnabled: false,
   shouldSort: false,
   placeholder: true,
   placeholderValue: 'Enter airport name',
-  searchResultLimit: 4,
-  searchChoices: true,
   removeItemButton: false, // Ensure only one selection is allowed
   maxItemCount: 1 // Limit to one selection
 });
 
 const destinationDropdown = new Choices(`#${destinationFieldId}`, {
-  searchEnabled: true,
+  searchEnabled: false,
   shouldSort: false,
   placeholder: true,
   placeholderValue: 'Enter airport name',
-  searchResultLimit: 4,
-  searchChoices: true,
   removeItemButton: false, // Ensure only one selection is allowed
   maxItemCount: 1 // Limit to one selection
 });
@@ -55,12 +51,21 @@ function parseCSV(data) {
 }
 
 // Attach event listeners to origin and destination dropdowns
-function attachSearchEvent(choicesInstance, airportData) {
-  const searchInput = choicesInstance.input.element;
-  searchInput.addEventListener('input', function () {
-    const searchTerm = searchInput.value.toLowerCase();
-    console.log('Search term:', searchTerm); // Debugging log
+function attachSearchEvent(inputFieldId, airportData) {
+  const inputElement = document.getElementById(inputFieldId);
+  const dropdownContainer = document.createElement('div');
+  dropdownContainer.classList.add('custom-dropdown');
+  dropdownContainer.style.position = 'absolute';
+  dropdownContainer.style.zIndex = '1000';
+  dropdownContainer.style.backgroundColor = 'white';
+  dropdownContainer.style.border = '1px solid #ccc';
+  dropdownContainer.style.width = `${inputElement.offsetWidth}px`;
+  dropdownContainer.style.display = 'none';
+  inputElement.parentNode.appendChild(dropdownContainer);
 
+  inputElement.addEventListener('input', function () {
+    const searchTerm = inputElement.value.toLowerCase();
+    dropdownContainer.innerHTML = '';
     if (searchTerm.length > 0) {
       // Filter the top 4 results based on name, municipality, or iata_code
       const filteredAirports = airportData.filter(airport =>
@@ -69,21 +74,32 @@ function attachSearchEvent(choicesInstance, airportData) {
         airport.iata_code.toLowerCase().includes(searchTerm)
       ).slice(0, 4);
 
-      console.log('Filtered Airports:', filteredAirports); // Debugging log
-
       if (filteredAirports.length > 0) {
-        choicesInstance.clearStore(); // Properly clear choices and reset internal state
         filteredAirports.forEach(airport => {
-          choicesInstance.setChoices([{
-            value: `${airport.name} (${airport.iata_code})`,
-            label: `${airport.name} (${airport.iata_code}) - ${airport.municipality}`
-          }], 'value', 'label', false);
+          const option = document.createElement('div');
+          option.classList.add('dropdown-option');
+          option.style.padding = '8px';
+          option.style.cursor = 'pointer';
+          option.textContent = `${airport.name} (${airport.iata_code}) - ${airport.municipality}`;
+          option.addEventListener('click', function () {
+            inputElement.value = `${airport.name} (${airport.iata_code})`;
+            dropdownContainer.style.display = 'none';
+          });
+          dropdownContainer.appendChild(option);
         });
+        dropdownContainer.style.display = 'block';
       } else {
-        choicesInstance.clearChoices();
+        dropdownContainer.style.display = 'none';
       }
     } else {
-      choicesInstance.clearChoices();
+      dropdownContainer.style.display = 'none';
+    }
+  });
+
+  // Hide dropdown when clicking outside
+  document.addEventListener('click', function (event) {
+    if (!dropdownContainer.contains(event.target) && event.target !== inputElement) {
+      dropdownContainer.style.display = 'none';
     }
   });
 }
@@ -93,6 +109,6 @@ function attachSearchEvent(choicesInstance, airportData) {
   const airportData = await fetchAirports();
   console.log('Airport data loaded:', airportData); // Debugging log
 
-  attachSearchEvent(originDropdown, airportData);
-  attachSearchEvent(destinationDropdown, airportData);
+  attachSearchEvent(originFieldId, airportData);
+  attachSearchEvent(destinationFieldId, airportData);
 })();
