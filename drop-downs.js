@@ -1,28 +1,9 @@
-// This script uses choices.js and fetches airport data to enable the dropdown functionality.
+// This script fetches airport data to enable the dropdown functionality.
 // It allows the user to search for airports by typing into an input field, and displays the top 4 results.
 
 // Webflow field IDs
 const originFieldId = 'origin-dropdown';
 const destinationFieldId = 'destination-dropdown';
-
-// Choices.js initialization for the dropdowns
-const originDropdown = new Choices(`#${originFieldId}`, {
-  searchEnabled: false,
-  shouldSort: false,
-  placeholder: true,
-  placeholderValue: 'Enter airport name',
-  removeItemButton: false, // Ensure only one selection is allowed
-  maxItemCount: 1 // Limit to one selection
-});
-
-const destinationDropdown = new Choices(`#${destinationFieldId}`, {
-  searchEnabled: false,
-  shouldSort: false,
-  placeholder: true,
-  placeholderValue: 'Enter airport name',
-  removeItemButton: false, // Ensure only one selection is allowed
-  maxItemCount: 1 // Limit to one selection
-});
 
 // Fetching airport data from the CSV file
 async function fetchAirports() {
@@ -55,7 +36,7 @@ function attachSearchEvent(inputFieldId, airportData) {
   const inputElement = document.getElementById(inputFieldId);
   const dropdownContainer = document.createElement('div');
   dropdownContainer.classList.add('custom-dropdown');
-  dropdownContainer.style.position = 'absolute';
+  dropdownContainer.style.position = 'fixed';
   dropdownContainer.style.zIndex = '1000';
   dropdownContainer.style.backgroundColor = 'white';
   dropdownContainer.style.border = '1px solid #ccc';
@@ -63,7 +44,7 @@ function attachSearchEvent(inputFieldId, airportData) {
   dropdownContainer.style.display = 'none';
   dropdownContainer.style.maxHeight = '150px';
   dropdownContainer.style.overflowY = 'auto'; // Add scroll if there are many options
-  inputElement.parentNode.appendChild(dropdownContainer);
+  document.body.appendChild(dropdownContainer);
 
   inputElement.addEventListener('input', function () {
     const searchTerm = inputElement.value.toLowerCase();
@@ -95,8 +76,9 @@ function attachSearchEvent(inputFieldId, airportData) {
           dropdownContainer.appendChild(option);
         });
         dropdownContainer.style.display = 'block';
-        dropdownContainer.style.top = `${inputElement.offsetTop + inputElement.offsetHeight}px`;
-        dropdownContainer.style.left = `${inputElement.offsetLeft}px`;
+        const rect = inputElement.getBoundingClientRect();
+        dropdownContainer.style.top = `${rect.bottom}px`;
+        dropdownContainer.style.left = `${rect.left}px`;
       } else {
         dropdownContainer.style.display = 'none';
       }
@@ -114,10 +96,10 @@ function attachSearchEvent(inputFieldId, airportData) {
 }
 
 // Main function to initialize the dropdowns with fetched data
-(async function () {
+document.addEventListener('DOMContentLoaded', async function () {
   const airportData = await fetchAirports();
   console.log('Airport data loaded:', airportData); // Debugging log
 
   attachSearchEvent(originFieldId, airportData);
   attachSearchEvent(destinationFieldId, airportData);
-})();
+});
