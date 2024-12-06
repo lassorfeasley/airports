@@ -1,130 +1,53 @@
-document.addEventListener('DOMContentLoaded', async function () {
-    const originInput = document.getElementById('origin-dropdown');
-    const destinationInput = document.getElementById('destination-dropdown');
-    const originResults = document.getElementById('origin-results');
-    const destinationResults = document.getElementById('destination-results');
+// This script calculates the distance between the two selected airports and displays the result
+// in the corresponding text boxes in Webflow
 
-    const distanceOutput = document.getElementById('distance-output');
-    const carbonOutput = document.getElementById('carbon-output');
-    const panelsOutput = document.getElementById('panels-to-offset');
-    const classSelector = document.querySelectorAll('input[name="class"]');
-    const tripCheckbox = document.getElementById('roundtrip-checkbox');
+// Webflow field IDs
+const originFieldId = 'origin-dropdown';
+const destinationFieldId = 'destination-dropdown';
+const originCoordinatesFieldId = 'Origin-coordinates';
+const destinationCoordinatesFieldId = 'Destination-coordinates';
+const totalDistanceFieldId = 'Total-distance';
 
-    const EARTH_RADIUS = 3958.8; // Radius of the Earth in miles
-    let airportData = [];
+// Function to calculate the distance between two coordinates using the Haversine formula
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of the Earth in kilometers
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance in kilometers
+}
 
-    // Fetch and parse airport data from CSV
-    async function fetchAirportData() {
-        try {
-            const response = await fetch('https://davidmegginson.github.io/ourairports-data/airports.csv');
-            const csvText = await response.text();
-            const rows = csvText.split('\n').slice(1); // Skip header row
-            airportData = rows.map(row => {
-                const columns = row.split(',');
-                return {
-                    Name: columns[3]?.replace(/"/g, ''),
-                    City: columns[10]?.replace(/"/g, ''),
-                    IATA: columns[13]?.replace(/"/g, ''),
-                    Latitude: parseFloat(columns[4]),
-                    Longitude: parseFloat(columns[5])
-                };
-            }).filter(airport => airport.IATA); // Only include airports with IATA codes
+// Main function to get coordinates and calculate distance
+function calculateAndDisplayDistance() {
+    const originInput = document.getElementById(originFieldId);
+    const destinationInput = document.getElementById(destinationFieldId);
 
-            console.log('Airport data loaded:', airportData);
-        } catch (error) {
-            console.error('Error fetching airport data:', error);
-        }
+    // Retrieve coordinates from the input elements' data attributes
+    const originLatitude = parseFloat(originInput.dataset.latitude);
+    const originLongitude = parseFloat(originInput.dataset.longitude);
+    const destinationLatitude = parseFloat(destinationInput.dataset.latitude);
+    const destinationLongitude = parseFloat(destinationInput.dataset.longitude);
+
+    // Ensure both airports have been selected
+    if (!isNaN(originLatitude) && !isNaN(originLongitude) && !isNaN(destinationLatitude) && !isNaN(destinationLongitude)) {
+        // Calculate distance
+        const distance = calculateDistance(originLatitude, originLongitude, destinationLatitude, destinationLongitude);
+
+        // Display coordinates in the Webflow text boxes
+        document.getElementById(originCoordinatesFieldId).textContent = `Lat: ${originLatitude}, Lon: ${originLongitude}`;
+        document.getElementById(destinationCoordinatesFieldId).textContent = `Lat: ${destinationLatitude}, Lon: ${destinationLongitude}`;
+
+        // Display distance in the Webflow text box
+        document.getElementById(totalDistanceFieldId).textContent = `${distance.toFixed(2)} km`;
+    } else {
+        console.log('Please select both origin and destination airports.');
     }
+}
 
-    // Calculate distance using the Haversine formula
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-        const toRadians = (degrees) => (degrees * Math.PI) / 180;
-
-        const dLat = toRadians(lat2 - lat1);
-        const dLon = toRadians(lon2 - lon1);
-
-        const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const distance = EARTH_RADIUS * c; // Distance in miles
-
-        console.log(`Calculated Distance: ${distance.toFixed(2)} miles`);
-        return distance;
-    }
-
-    // Perform calculations and update results
-    function updateCalculations() {
-        const originCode = originInput.dataset.iata;
-        const destinationCode = destinationInput.dataset.iata;
-
-        console.log('Origin Code:', originCode);
-        console.log('Destination Code:', destinationCode);
-
-        if (!originCode || !destinationCode) {
-            console.warn('Missing airport selections.');
-            distanceOutput.textContent = 'Please select both airports.';
-            carbonOutput.textContent = 'Carbon Output: N/A';
-            panelsOutput.textContent = 'Panels Required to Offset: N/A';
-            return;
-        }
-
-        const origin = airportData.find(airport => airport.IATA === originCode);
-        const destination = airportData.find(airport => airport.IATA === destinationCode);
-
-        console.log('Origin Data:', origin);
-        console.log('Destination Data:', destination);
-
-        if (!origin || !destination) {
-            console.error('Invalid airport selections.');
-            distanceOutput.textContent = 'Invalid airport selection.';
-            carbonOutput.textContent = 'Carbon Output: N/A';
-            panelsOutput.textContent = 'Panels Required to Offset: N/A';
-            return;
-        }
-
-        const selectedClass = [...classSelector].find(radio => radio.checked);
-        const emissionsFactor = selectedClass ? parseFloat(selectedClass.value) : 0.15; // Default to coach
-
-        const isRoundTrip = tripCheckbox.checked;
-
-        console.log('Selected Class Factor:', emissionsFactor);
-        console.log('Is Round Trip:', isRoundTrip);
-
-        const distance = calculateDistance(
-            origin.Latitude,
-            origin.Longitude,
-            destination.Latitude,
-            destination.Longitude
-        );
-
-        const totalDistance = isRoundTrip ? distance * 2 : distance;
-        const carbonEmissionsLbs = totalDistance * emissionsFactor * 2.20462;
-        const panelOffset = Math.ceil(carbonEmissionsLbs / 530);
-
-        console.log('Total Distance:', totalDistance.toFixed(2));
-        console.log('Carbon Emissions (lbs):', carbonEmissionsLbs.toFixed(2));
-        console.log('Panels to Offset:', panelOffset);
-
-        // Update the results in the UI
-        distanceOutput.textContent = `Distance: ${totalDistance.toFixed(2)} miles`;
-        carbonOutput.textContent = `Carbon Output: ${carbonEmissionsLbs.toFixed(2)} lbs CO₂`;
-        panelsOutput.textContent = `Panels Required to Offset: ${panelOffset}`;
-    }
-
-    // Add event listeners for input changes
-    originInput.addEventListener('input', () => updateCalculations());
-    destinationInput.addEventListener('input', () => updateCalculations());
-    classSelector.forEach(radio => radio.addEventListener('change', updateCalculations));
-    tripCheckbox.addEventListener('change', updateCalculations);
-
-    // Initialize the output placeholders
-    distanceOutput.textContent = 'Please select both airports.';
-    carbonOutput.textContent = 'Carbon Output: N/A';
-    panelsOutput.textContent = 'Panels Required to Offset: N/A';
-
-    // Fetch airport data on load
-    await fetchAirportData();
-});
+// Event listeners for when the user selects an airport
+document.getElementById(originFieldId).addEventListener('change', calculateAndDisplayDistance);
+document.getElementById(destinationFieldId).addEventListener('change', calculateAndDisplayDistance);
