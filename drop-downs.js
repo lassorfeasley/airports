@@ -69,7 +69,7 @@ function attachSearchEvent(choicesInstance, airportData) {
 
       const choiceOptions = filteredAirports.map(airport => {
         return {
-          value: `${airport.name} (${airport.iata_code}) - ${airport.municipality}`,
+          value: `${airport.name} (${airport.iata_code})`,
           label: `${airport.name} (${airport.iata_code}) - ${airport.municipality}`
         };
       });
