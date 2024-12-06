@@ -4,12 +4,26 @@
 // Webflow field IDs
 const originFieldId = 'origin-dropdown';
 const destinationFieldId = 'destination-dropdown';
+let airportData = []; // Store airport data globally
+
+// Default popular airports
+const popularAirports = [
+  { iata_code: 'SFO', name: 'San Francisco International Airport', municipality: 'San Francisco' },
+  { iata_code: 'JFK', name: 'John F. Kennedy International Airport', municipality: 'New York' },
+  { iata_code: 'LGA', name: 'LaGuardia Airport', municipality: 'New York' },
+  { iata_code: 'LAX', name: 'Los Angeles International Airport', municipality: 'Los Angeles' }
+];
 
 // Fetching airport data from the CSV file
 async function fetchAirports() {
-  const response = await fetch('https://davidmegginson.github.io/ourairports-data/airports.csv');
-  const data = await response.text();
-  return parseCSV(data);
+  try {
+    const response = await fetch('https://davidmegginson.github.io/ourairports-data/airports.csv');
+    const data = await response.text();
+    return parseCSV(data);
+  } catch (error) {
+    console.error('Error fetching airport data:', error);
+    return []; // Return an empty array on error
+  }
 }
 
 // Function to parse CSV into a usable array of objects
@@ -31,12 +45,32 @@ function parseCSV(data) {
   return airportList;
 }
 
+// Populate dropdown with popular airports
+function populateDropdownWithPopular(dropdownContainer) {
+  dropdownContainer.innerHTML = ''; // Clear existing options
+
+  popularAirports.forEach((airport) => {
+    const option = document.createElement('div');
+    option.classList.add('dropdown-option');
+    option.style.padding = '8px';
+    option.style.cursor = 'pointer';
+    option.style.borderBottom = '1px solid #ddd';
+    option.textContent = `${airport.name} (${airport.iata_code}) - ${airport.municipality}`;
+    option.addEventListener('click', function () {
+      const inputElement = dropdownContainer.previousElementSibling;
+      inputElement.value = `${airport.name} (${airport.iata_code})`;
+      dropdownContainer.style.display = 'none';
+    });
+    dropdownContainer.appendChild(option);
+  });
+}
+
 // Attach event listeners to origin and destination dropdowns
 function attachSearchEvent(inputFieldId, airportData) {
   const inputElement = document.getElementById(inputFieldId);
   const dropdownContainer = document.createElement('div');
   dropdownContainer.classList.add('custom-dropdown');
-  dropdownContainer.style.position = 'fixed';
+  dropdownContainer.style.position = 'absolute';
   dropdownContainer.style.zIndex = '1000';
   dropdownContainer.style.backgroundColor = 'white';
   dropdownContainer.style.border = '1px solid #ccc';
@@ -46,8 +80,15 @@ function attachSearchEvent(inputFieldId, airportData) {
   dropdownContainer.style.overflowY = 'auto'; // Add scroll if there are many options
   document.body.appendChild(dropdownContainer);
 
+  // Populate with popular airports initially
+  populateDropdownWithPopular(dropdownContainer);
+  dropdownContainer.style.display = 'block';
+  const rect = inputElement.getBoundingClientRect();
+  dropdownContainer.style.top = `${window.scrollY + rect.bottom}px`;
+  dropdownContainer.style.left = `${window.scrollX + rect.left}px`;
+
   inputElement.addEventListener('input', function () {
-    const searchTerm = inputElement.value.toLowerCase();
+    const searchTerm = inputElement.value.toLowerCase().trim();
     dropdownContainer.innerHTML = '';
     console.log('User input:', searchTerm); // Debugging log
 
@@ -76,14 +117,15 @@ function attachSearchEvent(inputFieldId, airportData) {
           dropdownContainer.appendChild(option);
         });
         dropdownContainer.style.display = 'block';
-        const rect = inputElement.getBoundingClientRect();
-        dropdownContainer.style.top = `${rect.bottom}px`;
-        dropdownContainer.style.left = `${rect.left}px`;
+        dropdownContainer.style.top = `${window.scrollY + rect.bottom}px`;
+        dropdownContainer.style.left = `${window.scrollX + rect.left}px`;
       } else {
         dropdownContainer.style.display = 'none';
       }
     } else {
-      dropdownContainer.style.display = 'none';
+      // Show popular airports when input is cleared
+      populateDropdownWithPopular(dropdownContainer);
+      dropdownContainer.style.display = 'block';
     }
   });
 
@@ -97,7 +139,7 @@ function attachSearchEvent(inputFieldId, airportData) {
 
 // Main function to initialize the dropdowns with fetched data
 document.addEventListener('DOMContentLoaded', async function () {
-  const airportData = await fetchAirports();
+  airportData = await fetchAirports();
   console.log('Airport data loaded:', airportData); // Debugging log
 
   attachSearchEvent(originFieldId, airportData);
