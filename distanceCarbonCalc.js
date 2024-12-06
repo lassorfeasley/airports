@@ -1,98 +1,46 @@
-document.addEventListener('DOMContentLoaded', async function () {
-    const originInput = document.getElementById('origin-dropdown');
-    const destinationInput = document.getElementById('destination-dropdown');
-    const originDropdown = document.createElement('div');
-    const destinationDropdown = document.createElement('div');
-    
-    // Styles for dropdown
-    originDropdown.style.position = "absolute";
-    originDropdown.style.zIndex = "10";
-    originDropdown.style.background = "#fff";
-    originDropdown.style.border = "1px solid #ccc";
-    originDropdown.style.borderRadius = "10px";
-    originDropdown.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
-    originDropdown.style.width = "100%";
-    originDropdown.style.maxHeight = "200px";
-    originDropdown.style.overflowY = "auto";
-    originDropdown.style.display = "none";
-    
-    destinationDropdown.style.position = "absolute";
-    destinationDropdown.style.zIndex = "10";
-    destinationDropdown.style.background = "#fff";
-    destinationDropdown.style.border = "1px solid #ccc";
-    destinationDropdown.style.borderRadius = "10px";
-    destinationDropdown.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
-    destinationDropdown.style.width = "100%";
-    destinationDropdown.style.maxHeight = "200px";
-    destinationDropdown.style.overflowY = "auto";
-    destinationDropdown.style.display = "none";
-
-    // Insert the dropdowns right after the inputs
-    originInput.parentNode.insertBefore(originDropdown, originInput.nextSibling);
-    destinationInput.parentNode.insertBefore(destinationDropdown, destinationInput.nextSibling);
+// Wait for the document to load
+document.addEventListener('DOMContentLoaded', function () {
+    const originDropdown = document.getElementById('origin-dropdown');
+    const destinationDropdown = document.getElementById('destination-dropdown');
+    const distanceOutput = document.getElementById('distance-output');
+    const carbonOutput = document.getElementById('carbon-output');
+    const panelsOutput = document.getElementById('panels-to-offset');
+    const classSelector = document.querySelectorAll('input[name="class"]');
+    const roundTripCheckbox = document.getElementById('roundtrip-checkbox');
+    const tripCheckbox = document.getElementById('roundtrip-checkbox'); // The checkbox for trip type
 
     let airportData = [];
+    const EARTH_RADIUS = 3958.8; // Radius of Earth in miles
+@@ -66,19 +65,17 @@ document.addEventListener('DOMContentLoaded', function () {
+        const selectedClass = [...classSelector].find(radio => radio.checked);
+        const emissionsFactor = selectedClass ? parseFloat(selectedClass.value) : 0.15; // Default to Coach
 
-    // Fetch and parse CSV
-    async function fetchAirportData() {
-        try {
-            const response = await fetch('https://davidmegginson.github.io/ourairports-data/airports.csv');
-            const text = await response.text();
-            const rows = text.split('\n').slice(1); // Skip header row
-            airportData = rows.map(row => {
-                const columns = row.split(',');
-                return {
-                    AirportName: columns[3]?.replace(/"/g, '').trim(), // Name
-                    City: columns[10]?.replace(/"/g, '').trim(), // Municipality
-                    IATA: columns[13]?.replace(/"/g, '').trim(), // IATA Code
-                    Latitude: parseFloat(columns[4]), // Latitude
-                    Longitude: parseFloat(columns[5]) // Longitude
-                };
-            }).filter(airport => airport.IATA && airport.City); // Only include valid entries
-        } catch (error) {
-            console.error('Error fetching airport data:', error);
-        }
-    }
-
-    // Filter and display airports
-    function filterAirports(input, dropdown, query) {
-        dropdown.innerHTML = '';
-        const filteredAirports = airportData.filter(airport => 
-            airport.AirportName.toLowerCase().includes(query.toLowerCase()) ||
-            airport.City.toLowerCase().includes(query.toLowerCase()) ||
-            airport.IATA.toLowerCase().includes(query.toLowerCase())
+        // Determine if the trip is round trip based on checkbox
+        const isRoundTrip = roundTripCheckbox.checked;
+        const isOneWay = tripCheckbox.checked; // Checkbox checked means "One Way"
+        const distance = calculateDistance(
+            parseFloat(origin.Latitude),
+            parseFloat(origin.Longitude),
+            parseFloat(destination.Latitude),
+            parseFloat(destination.Longitude)
         );
-        filteredAirports.forEach(airport => {
-            const option = document.createElement('div');
-            option.textContent = `${airport.AirportName} (${airport.IATA}) - ${airport.City}`;
-            option.style.padding = "8px";
-            option.style.cursor = "pointer";
-            option.style.borderBottom = "1px solid #eee";
 
-            option.addEventListener('click', () => {
-                input.value = `${airport.AirportName} (${airport.IATA})`;
-                dropdown.style.display = 'none';
-            });
+        const totalDistance = isRoundTrip ? distance * 2 : distance;
+        const carbonEmissionsLbs = totalDistance * emissionsFactor * 2.20462;
+        const panelOffset = Math.ceil(carbonEmissionsLbs / 530);
+        const totalDistance = isOneWay ? distance : distance * 2; // Double for round trip if unchecked
+        const carbonEmissionsLbs = totalDistance * emissionsFactor * 2.20462; // Convert to pounds
+        const panelOffset = Math.ceil(carbonEmissionsLbs / 530); // Calculate panel offset
 
-            dropdown.appendChild(option);
-        });
-        dropdown.style.display = filteredAirports.length ? 'block' : 'none';
-    }
+        distanceOutput.textContent = `Distance: ${totalDistance.toFixed(2)} miles`;
+        carbonOutput.textContent = `Carbon Output: ${carbonEmissionsLbs.toFixed(2)} lbs CO₂`;
+@@ -89,8 +86,7 @@ document.addEventListener('DOMContentLoaded', function () {
+    originDropdown.addEventListener('change', updateCalculation);
+    destinationDropdown.addEventListener('change', updateCalculation);
+    classSelector.forEach(radio => radio.addEventListener('change', updateCalculation));
+    roundTripCheckbox.addEventListener('change', updateCalculation);
+    tripCheckbox.addEventListener('change', updateCalculation); // Trigger update when checkbox is toggled
 
-    // Attach event listeners
-    originInput.addEventListener('input', () => {
-        filterAirports(originInput, originDropdown, originInput.value);
-    });
-    destinationInput.addEventListener('input', () => {
-        filterAirports(destinationInput, destinationDropdown, destinationInput.value);
-    });
-
-    originInput.addEventListener('blur', () => {
-        setTimeout(() => originDropdown.style.display = 'none', 200); // Delay to allow click
-    });
-    destinationInput.addEventListener('blur', () => {
-        setTimeout(() => destinationDropdown.style.display = 'none', 200);
-    });
-
-    await fetchAirportData();
+    // Fetch airport data
+    fetchAirportData();
 });
