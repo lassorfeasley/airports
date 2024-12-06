@@ -59,18 +59,23 @@ function populateDropdownWithPopular(dropdownContainer) {
         option.style.borderBottom = '1px solid #ddd';
         option.textContent = `${airport.name} (${airport.iata_code})`;
         
-        // Fix: Correct the reference to properly select the corresponding dropdown element
+        // Fix: Correctly reference the corresponding dropdown input
         option.addEventListener('click', function () {
-            const inputElement = dropdownContainer.previousElementSibling; // Corrected reference to input element
-            inputElement.dataset.iataCode = airport.iata_code;
-            inputElement.dataset.latitude = airport.latitude_deg;
-            inputElement.dataset.longitude = airport.longitude_deg;
-            inputElement.value = `${airport.name}`; // Show only airport name after selection
-            dropdownContainer.style.display = 'none';
+            const inputElement = dropdownContainer.previousElementSibling; // Reference the correct input element
+            if (inputElement) {
+                inputElement.dataset.iataCode = airport.iata_code;
+                inputElement.dataset.latitude = airport.latitude_deg;
+                inputElement.dataset.longitude = airport.longitude_deg;
+                inputElement.value = `${airport.name}`; // Show only airport name after selection
+                dropdownContainer.style.display = 'none';
+            } else {
+                console.error("Input element reference is missing or incorrect");
+            }
         });
         dropdownContainer.appendChild(option);
     });
 }
+
 
 
 // Attach event listeners to origin and destination dropdowns
