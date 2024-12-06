@@ -57,8 +57,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         if (!originCode || !destinationCode) {
             distanceOutput.textContent = 'Please select both airports.';
-            carbonOutput.textContent = '';
-            panelsOutput.textContent = '';
+            carbonOutput.textContent = 'Carbon Output: N/A';
+            panelsOutput.textContent = 'Panels Required to Offset: N/A';
             return;
         }
 
@@ -67,8 +67,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         if (!origin || !destination) {
             distanceOutput.textContent = 'Invalid airport selection.';
-            carbonOutput.textContent = '';
-            panelsOutput.textContent = '';
+            carbonOutput.textContent = 'Carbon Output: N/A';
+            panelsOutput.textContent = 'Panels Required to Offset: N/A';
             return;
         }
 
@@ -99,6 +99,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     destinationInput.addEventListener('input', () => updateCalculations());
     classSelector.forEach(radio => radio.addEventListener('change', updateCalculations));
     tripCheckbox.addEventListener('change', updateCalculations);
+
+    // Initialize the output placeholders
+    distanceOutput.textContent = 'Please select both airports.';
+    carbonOutput.textContent = 'Carbon Output: N/A';
+    panelsOutput.textContent = 'Panels Required to Offset: N/A';
 
     // Fetch airport data on load
     await fetchAirportData();
