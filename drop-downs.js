@@ -49,24 +49,29 @@ function parseCSV(data) {
 
 // Populate dropdown with popular airports
 function populateDropdownWithPopular(dropdownContainer) {
-  dropdownContainer.innerHTML = ''; // Clear existing options
+    dropdownContainer.innerHTML = ''; // Clear existing options
 
-  popularAirports.forEach((airport) => {
-    const option = document.createElement('div');
-    option.classList.add('dropdown-option');
-    option.style.padding = '8px';
-    option.style.cursor = 'pointer';
-    option.style.borderBottom = '1px solid #ddd';
-    option.textContent = `${airport.name} (${airport.iata_code})`;
-    option.addEventListener('click', function () {
-$1  inputElement.dataset.iataCode = airport.iata_code;
-  inputElement.dataset.latitude = airport.latitude_deg;
-  inputElement.dataset.longitude = airport.longitude_deg;
-  dropdownContainer.style.display = 'none';
+    popularAirports.forEach((airport) => {
+        const option = document.createElement('div');
+        option.classList.add('dropdown-option');
+        option.style.padding = '8px';
+        option.style.cursor = 'pointer';
+        option.style.borderBottom = '1px solid #ddd';
+        option.textContent = `${airport.name} (${airport.iata_code})`;
+        
+        // Fix: Correct the reference to properly select the corresponding dropdown element
+        option.addEventListener('click', function () {
+            const inputElement = dropdownContainer.previousElementSibling; // Corrected reference to input element
+            inputElement.dataset.iataCode = airport.iata_code;
+            inputElement.dataset.latitude = airport.latitude_deg;
+            inputElement.dataset.longitude = airport.longitude_deg;
+            inputElement.value = `${airport.name}`; // Show only airport name after selection
+            dropdownContainer.style.display = 'none';
+        });
+        dropdownContainer.appendChild(option);
     });
-    dropdownContainer.appendChild(option);
-  });
 }
+
 
 // Attach event listeners to origin and destination dropdowns
 function attachSearchEvent(inputFieldId, airportData) {
