@@ -29,6 +29,8 @@ document.addEventListener('DOMContentLoaded', async function () {
                     Longitude: parseFloat(columns[5])
                 };
             }).filter(airport => airport.IATA); // Only include airports with IATA codes
+
+            console.log('Airport data loaded:', airportData);
         } catch (error) {
             console.error('Error fetching airport data:', error);
         }
@@ -47,7 +49,10 @@ document.addEventListener('DOMContentLoaded', async function () {
             Math.sin(dLon / 2) * Math.sin(dLon / 2);
 
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return EARTH_RADIUS * c; // Distance in miles
+        const distance = EARTH_RADIUS * c; // Distance in miles
+
+        console.log(`Calculated Distance: ${distance.toFixed(2)} miles`);
+        return distance;
     }
 
     // Perform calculations and update results
@@ -55,7 +60,11 @@ document.addEventListener('DOMContentLoaded', async function () {
         const originCode = originInput.dataset.iata;
         const destinationCode = destinationInput.dataset.iata;
 
+        console.log('Origin Code:', originCode);
+        console.log('Destination Code:', destinationCode);
+
         if (!originCode || !destinationCode) {
+            console.warn('Missing airport selections.');
             distanceOutput.textContent = 'Please select both airports.';
             carbonOutput.textContent = 'Carbon Output: N/A';
             panelsOutput.textContent = 'Panels Required to Offset: N/A';
@@ -65,7 +74,11 @@ document.addEventListener('DOMContentLoaded', async function () {
         const origin = airportData.find(airport => airport.IATA === originCode);
         const destination = airportData.find(airport => airport.IATA === destinationCode);
 
+        console.log('Origin Data:', origin);
+        console.log('Destination Data:', destination);
+
         if (!origin || !destination) {
+            console.error('Invalid airport selections.');
             distanceOutput.textContent = 'Invalid airport selection.';
             carbonOutput.textContent = 'Carbon Output: N/A';
             panelsOutput.textContent = 'Panels Required to Offset: N/A';
@@ -77,6 +90,9 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         const isRoundTrip = tripCheckbox.checked;
 
+        console.log('Selected Class Factor:', emissionsFactor);
+        console.log('Is Round Trip:', isRoundTrip);
+
         const distance = calculateDistance(
             origin.Latitude,
             origin.Longitude,
@@ -87,6 +103,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         const totalDistance = isRoundTrip ? distance * 2 : distance;
         const carbonEmissionsLbs = totalDistance * emissionsFactor * 2.20462;
         const panelOffset = Math.ceil(carbonEmissionsLbs / 530);
+
+        console.log('Total Distance:', totalDistance.toFixed(2));
+        console.log('Carbon Emissions (lbs):', carbonEmissionsLbs.toFixed(2));
+        console.log('Panels to Offset:', panelOffset);
 
         // Update the results in the UI
         distanceOutput.textContent = `Distance: ${totalDistance.toFixed(2)} miles`;
