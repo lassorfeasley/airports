@@ -1,46 +1,49 @@
 // Wait for the document to load
 document.addEventListener('DOMContentLoaded', function () {
-    const originDropdown = document.getElementById('origin-dropdown');
-    const destinationDropdown = document.getElementById('destination-dropdown');
     const distanceOutput = document.getElementById('distance-output');
     const carbonOutput = document.getElementById('carbon-output');
     const panelsOutput = document.getElementById('panels-to-offset');
-    const classSelector = document.querySelectorAll('input[name="class"]');
-    const roundTripCheckbox = document.getElementById('roundtrip-checkbox');
-    const tripCheckbox = document.getElementById('roundtrip-checkbox'); // The checkbox for trip type
 
-    let airportData = [];
-    const EARTH_RADIUS = 3958.8; // Radius of Earth in miles
-@@ -66,19 +65,17 @@ document.addEventListener('DOMContentLoaded', function () {
-        const selectedClass = [...classSelector].find(radio => radio.checked);
-        const emissionsFactor = selectedClass ? parseFloat(selectedClass.value) : 0.15; // Default to Coach
+    const EARTH_RADIUS = 3958.8; // Miles
 
-        // Determine if the trip is round trip based on checkbox
-        const isRoundTrip = roundTripCheckbox.checked;
-        const isOneWay = tripCheckbox.checked; // Checkbox checked means "One Way"
-        const distance = calculateDistance(
-            parseFloat(origin.Latitude),
-            parseFloat(origin.Longitude),
-            parseFloat(destination.Latitude),
-            parseFloat(destination.Longitude)
-        );
+    // Haversine formula for distance calculation
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const toRadians = (value) => (value * Math.PI) / 180;
 
-        const totalDistance = isRoundTrip ? distance * 2 : distance;
-        const carbonEmissionsLbs = totalDistance * emissionsFactor * 2.20462;
+        const dLat = toRadians(lat2 - lat1);
+        const dLon = toRadians(lon2 - lon1);
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return EARTH_RADIUS * c; // Distance in miles
+    }
+
+    // Update calculations
+    function updateCalculation() {
+        const originLat = parseFloat(document.getElementById('origin-dropdown').getAttribute('data-latitude'));
+        const originLng = parseFloat(document.getElementById('origin-dropdown').getAttribute('data-longitude'));
+        const destinationLat = parseFloat(document.getElementById('destination-dropdown').getAttribute('data-latitude'));
+        const destinationLng = parseFloat(document.getElementById('destination-dropdown').getAttribute('data-longitude'));
+
+        if (isNaN(originLat) || isNaN(destinationLat)) {
+            distanceOutput.textContent = 'Please select both airports.';
+            carbonOutput.textContent = '';
+            panelsOutput.textContent = '';
+            return;
+        }
+
+        const distance = calculateDistance(originLat, originLng, destinationLat, destinationLng);
+        const carbonEmissionsLbs = distance * 0.15 * 2.20462; // Default emissions factor for Coach
         const panelOffset = Math.ceil(carbonEmissionsLbs / 530);
-        const totalDistance = isOneWay ? distance : distance * 2; // Double for round trip if unchecked
-        const carbonEmissionsLbs = totalDistance * emissionsFactor * 2.20462; // Convert to pounds
-        const panelOffset = Math.ceil(carbonEmissionsLbs / 530); // Calculate panel offset
 
-        distanceOutput.textContent = `Distance: ${totalDistance.toFixed(2)} miles`;
+        distanceOutput.textContent = `Distance: ${distance.toFixed(2)} miles`;
         carbonOutput.textContent = `Carbon Output: ${carbonEmissionsLbs.toFixed(2)} lbs CO₂`;
-@@ -89,8 +86,7 @@ document.addEventListener('DOMContentLoaded', function () {
-    originDropdown.addEventListener('change', updateCalculation);
-    destinationDropdown.addEventListener('change', updateCalculation);
-    classSelector.forEach(radio => radio.addEventListener('change', updateCalculation));
-    roundTripCheckbox.addEventListener('change', updateCalculation);
-    tripCheckbox.addEventListener('change', updateCalculation); // Trigger update when checkbox is toggled
+        panelsOutput.textContent = `Panels Required to Offset: ${panelOffset}`;
+    }
 
-    // Fetch airport data
-    fetchAirportData();
+    // Attach event listeners
+    document.getElementById('origin-dropdown').addEventListener('change', updateCalculation);
+    document.getElementById('destination-dropdown').addEventListener('change', updateCalculation);
 });
