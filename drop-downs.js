@@ -2,7 +2,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     const originDropdown = document.getElementById("origin-dropdown");
     const destinationDropdown = document.getElementById("destination-dropdown");
 
-    // Fetch and parse airport data
     async function fetchAirportData() {
         try {
             const response = await fetch("https://davidmegginson.github.io/ourairports-data/airports.csv");
@@ -30,7 +29,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         return airports;
     }
 
-    // Function to attach dropdown to input field
     function attachDropdown(inputField, airports) {
         const dropdownContainer = document.createElement('div');
         dropdownContainer.classList.add('custom-dropdown');
@@ -40,10 +38,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         function populateDropdown(inputField, dropdownContainer, airports) {
             dropdownContainer.innerHTML = ''; // Clear existing options
-            currentIndex = -1; // Reset index when dropdown is rebuilt
             const searchTerm = inputField.value.toLowerCase();
 
-            // Filter airports based on input
             const filteredAirports = airports.filter(airport =>
                 airport.name.toLowerCase().includes(searchTerm) ||
                 airport.municipality.toLowerCase().includes(searchTerm) ||
@@ -56,7 +52,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                     option.classList.add('dropdown-option');
                     if (index === 0) {
                         option.classList.add('selected'); // Add selected class to the first option
-                        currentIndex = 0; // Set the current index to the first option
                     }
                     option.textContent = `${airport.name} (${airport.iata_code})`;
 
@@ -68,37 +63,34 @@ document.addEventListener("DOMContentLoaded", async function () {
 
                     dropdownContainer.appendChild(option);
                 });
+                dropdownContainer.style.display = 'block'; // Ensure dropdown is visible
             } else {
                 const noResult = document.createElement('div');
                 noResult.classList.add('dropdown-option', 'no-result');
                 noResult.textContent = 'No results found';
                 dropdownContainer.appendChild(noResult);
-                currentIndex = -1; // Reset current index if no results
+                dropdownContainer.style.display = 'block';
             }
         }
 
-        // Event listener to update dropdown on input
         inputField.addEventListener('input', function () {
             if (inputField.value.trim().length > 0) {
                 const rect = inputField.getBoundingClientRect();
                 dropdownContainer.style.top = `${window.scrollY + rect.bottom}px`;
                 dropdownContainer.style.left = `${window.scrollX + rect.left}px`;
                 dropdownContainer.style.width = `${inputField.offsetWidth}px`;
-                dropdownContainer.style.display = 'block'; // Show dropdown
                 populateDropdown(inputField, dropdownContainer, airports);
             } else {
                 dropdownContainer.style.display = 'none'; // Hide dropdown if input is empty
             }
         });
 
-        // Hide dropdown on blur
         inputField.addEventListener('blur', function () {
             setTimeout(() => {
                 dropdownContainer.style.display = 'none';
-            }, 200); // Slight delay to allow selection
+            }, 200);
         });
 
-        // Event listener for keyboard navigation
         inputField.addEventListener('keydown', function (event) {
             const options = dropdownContainer.querySelectorAll('.dropdown-option');
             if (event.key === 'ArrowDown') {
@@ -109,7 +101,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                     }
                     currentIndex++;
                     options[currentIndex].classList.add('selected');
-                    options[currentIndex].scrollIntoView({ block: "nearest" }); // Ensure visibility
+                    options[currentIndex].scrollIntoView({ block: "nearest" });
                 }
             } else if (event.key === 'ArrowUp') {
                 event.preventDefault();
@@ -117,7 +109,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                     options[currentIndex].classList.remove('selected');
                     currentIndex--;
                     options[currentIndex].classList.add('selected');
-                    options[currentIndex].scrollIntoView({ block: "nearest" }); // Ensure visibility
+                    options[currentIndex].scrollIntoView({ block: "nearest" });
                 }
             } else if (event.key === 'Enter') {
                 event.preventDefault();
