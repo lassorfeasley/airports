@@ -103,24 +103,20 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         if (origin && !destination) {
             updateFields(null, origin, null);
-            originDropdown.blur();
             return;
         }
 
         if (destination && !origin) {
             updateFields(null, null, destination);
-            destinationDropdown.blur();
             return;
         }
 
         const metrics = calculateMetrics(origin, destination, isRoundTrip, flightClassMultiplier);
         updateFields(metrics, origin, destination);
-        originDropdown.blur();
-        destinationDropdown.blur();
     }
 
-    originDropdown.addEventListener("change", handleSelectionChange);
-    destinationDropdown.addEventListener("change", handleSelectionChange);
+    originDropdown.addEventListener("input", handleSelectionChange);
+    destinationDropdown.addEventListener("input", handleSelectionChange);
     roundTripCheckbox.addEventListener("change", handleSelectionChange);
     flightClassRadios.forEach(radio => radio.addEventListener("change", handleSelectionChange));
 
