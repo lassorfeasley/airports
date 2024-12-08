@@ -8,18 +8,21 @@ document.addEventListener("DOMContentLoaded", function () {
         container: 'map', // ID of the map container element
         style: mapStyle,
         center: [0, 0], // Default center [longitude, latitude]
-        zoom: 1.5 // Default zoom level
+        zoom: 2 // Default zoom level
     });
 
     let markers = [];
     let routeLine = null;
 
     function addMarker(latitude, longitude) {
+        console.log(`Attempting to add marker at: ${latitude}, ${longitude}`); // Debug log
         const marker = new mapboxgl.Marker()
             .setLngLat([longitude, latitude])
             .addTo(map);
 
         markers.push(marker);
+
+        console.log(`Markers array:`, markers); // Debug log
 
         if (markers.length === 2) {
             drawRoute(markers[0].getLngLat(), markers[1].getLngLat());
@@ -27,6 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function drawRoute(start, end) {
+        console.log(`Drawing route from ${start} to ${end}`); // Debug log
         if (routeLine) {
             map.removeLayer("route");
             map.removeSource("route");
@@ -63,6 +67,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function animateRoute(coordinates) {
+        console.log(`Animating route:`, coordinates); // Debug log
         const frames = 180; // 3 seconds at 60fps
         const step = 1 / frames;
 
@@ -104,6 +109,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Event listener for airport selection
     function handleAirportSelection(lat, lng, isOrigin) {
+        if (isNaN(lat) || isNaN(lng)) {
+            console.error(`Invalid coordinates: lat=${lat}, lng=${lng}`); // Debug log for invalid data
+            return;
+        }
+
         addMarker(lat, lng);
 
         if (isOrigin) {
@@ -116,6 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const selectedOption = e.target.options[e.target.selectedIndex];
         const lat = parseFloat(selectedOption.dataset.lat);
         const lng = parseFloat(selectedOption.dataset.lng);
+        console.log(`Origin selected: lat=${lat}, lng=${lng}`); // Debug log
         handleAirportSelection(lat, lng, true);
     });
 
@@ -123,7 +134,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const selectedOption = e.target.options[e.target.selectedIndex];
         const lat = parseFloat(selectedOption.dataset.lat);
         const lng = parseFloat(selectedOption.dataset.lng);
+        console.log(`Destination selected: lat=${lat}, lng=${lng}`); // Debug log
         handleAirportSelection(lat, lng, false);
     });
 });
-
