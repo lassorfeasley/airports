@@ -124,17 +124,29 @@ document.addEventListener("DOMContentLoaded", function () {
     // Mock integration with dropdown selection
     document.getElementById("origin-dropdown").addEventListener("change", function (e) {
         const selectedOption = e.target.options[e.target.selectedIndex];
-        const lat = parseFloat(selectedOption.dataset.lat);
-        const lng = parseFloat(selectedOption.dataset.lng);
-        console.log(`Origin selected: lat=${lat}, lng=${lng}`); // Debug log
-        handleAirportSelection(lat, lng, true);
+        console.log(`Origin dropdown changed:`, selectedOption); // Debug log
+
+        if (selectedOption.dataset.lat && selectedOption.dataset.lng) {
+            const lat = parseFloat(selectedOption.dataset.lat);
+            const lng = parseFloat(selectedOption.dataset.lng);
+            console.log(`Origin selected: lat=${lat}, lng=${lng}`); // Debug log
+            handleAirportSelection(lat, lng, true);
+        } else {
+            console.error(`Missing data attributes on origin option`);
+        }
     });
 
     document.getElementById("destination-dropdown").addEventListener("change", function (e) {
         const selectedOption = e.target.options[e.target.selectedIndex];
-        const lat = parseFloat(selectedOption.dataset.lat);
-        const lng = parseFloat(selectedOption.dataset.lng);
-        console.log(`Destination selected: lat=${lat}, lng=${lng}`); // Debug log
-        handleAirportSelection(lat, lng, false);
+        console.log(`Destination dropdown changed:`, selectedOption); // Debug log
+
+        if (selectedOption.dataset.lat && selectedOption.dataset.lng) {
+            const lat = parseFloat(selectedOption.dataset.lat);
+            const lng = parseFloat(selectedOption.dataset.lng);
+            console.log(`Destination selected: lat=${lat}, lng=${lng}`); // Debug log
+            handleAirportSelection(lat, lng, false);
+        } else {
+            console.error(`Missing data attributes on destination option`);
+        }
     });
 });
