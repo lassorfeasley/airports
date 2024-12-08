@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         const totalDistance = distance * roundTripMultiplier;
 
         const carbonCost = totalDistance * flightClassMultiplier;
-        const panelsNeeded = carbonCost * 0.01; // Panels needed per kg of CO2
+        const panelsNeeded = Math.ceil(carbonCost * 0.01); // Panels needed per kg of CO2, rounded up
 
         return { totalDistance, carbonCost, panelsNeeded };
     }
@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         destinationCoordinatesField.textContent = `${destination.latitude}, ${destination.longitude}`;
         totalMilesField.textContent = metrics.totalDistance.toFixed(2);
         carbonCostField.textContent = metrics.carbonCost.toFixed(2);
-        panelsToOffsetField.textContent = metrics.panelsNeeded.toFixed(2);
+        panelsToOffsetField.textContent = metrics.panelsNeeded;
 
         console.log("Metrics:", metrics);
     }
@@ -82,9 +82,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         const destinationIATA = destinationDropdown.dataset.iataCode;
         const isRoundTrip = roundTripCheckbox.checked;
 
-        const flightClassMultiplier = parseFloat(Array.from(flightClassRadios).find(radio => radio.checked)?.value);
+        const flightClassMultiplier = parseFloat(Array.from(flightClassRadios).find(radio => radio.checked)?.value) || 0.15; // Default to coach multiplier
 
-        if (!originIATA || !destinationIATA || isNaN(flightClassMultiplier)) {
+        if (!originIATA || !destinationIATA) {
             console.log("Please make all selections to calculate metrics.");
             return;
         }
@@ -105,4 +105,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     destinationDropdown.addEventListener("change", handleSelectionChange);
     roundTripCheckbox.addEventListener("change", handleSelectionChange);
     flightClassRadios.forEach(radio => radio.addEventListener("change", handleSelectionChange));
+
+    // Trigger initial calculation with default values
+    handleSelectionChange();
 });
