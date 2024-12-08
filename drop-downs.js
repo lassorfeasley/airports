@@ -101,13 +101,23 @@ document.addEventListener("DOMContentLoaded", async function () {
                 dropdownContainer.style.width = `${inputField.offsetWidth}px`;
                 populateDropdown(inputField, dropdownContainer, airports);
             } else {
+                inputField.value = ''; // Clear input if no match
                 dropdownContainer.style.display = 'none'; // Hide dropdown if input is empty
             }
         });
 
-        // Hide dropdown on blur
+        // Hide dropdown on blur and reset input if invalid
         inputField.addEventListener('blur', function () {
             setTimeout(() => {
+                const selectedOption = Array.from(dropdownContainer.children).find(option =>
+                    option.textContent === `${inputField.value} (${inputField.dataset.iataCode})`
+                );
+
+                if (!selectedOption) {
+                    inputField.value = ''; // Clear input if no valid selection
+                    delete inputField.dataset.iataCode; // Remove invalid data
+                }
+
                 dropdownContainer.style.display = 'none';
             }, 200); // Slight delay to allow selection
         });
