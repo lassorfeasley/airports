@@ -4,6 +4,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     const mapContainer = document.getElementById("map-container"); // Ensure there's a div with this ID in your HTML
 
+    let originMarker = null;
+    let destinationMarker = null;
+    let routeSourceId = "animatedRoute";
+
     function initializeMap() {
         const map = new mapboxgl.Map({
             container: mapContainer,
@@ -17,12 +21,24 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     function addMarker(map, coords, popupText) {
-        const marker = new mapboxgl.Marker()
+        return new mapboxgl.Marker()
             .setLngLat(coords)
             .setPopup(new mapboxgl.Popup().setHTML(popupText))
             .addTo(map);
+    }
 
-        return marker;
+    function updateMarkers(map, origin, destination) {
+        // Clear existing markers
+        if (originMarker) {
+            originMarker.remove();
+        }
+        if (destinationMarker) {
+            destinationMarker.remove();
+        }
+
+        // Add new markers
+        originMarker = addMarker(map, [origin.longitude, origin.latitude], `<b>Origin:</b> ${origin.name}`);
+        destinationMarker = addMarker(map, [destination.longitude, destination.latitude], `<b>Destination:</b> ${destination.name}`);
     }
 
     async function animateRoute(map, origin, destination) {
@@ -39,14 +55,12 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         };
 
-        const sourceId = "animatedRoute";
-
-        if (map.getSource(sourceId)) {
+        if (map.getSource(routeSourceId)) {
             map.removeLayer("routeLine");
-            map.removeSource(sourceId);
+            map.removeSource(routeSourceId);
         }
 
-        map.addSource(sourceId, {
+        map.addSource(routeSourceId, {
             type: "geojson",
             data: line
         });
@@ -54,7 +68,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         map.addLayer({
             id: "routeLine",
             type: "line",
-            source: sourceId,
+            source: routeSourceId,
             layout: {},
             paint: {
                 "line-color": "#007cbf",
@@ -67,14 +81,12 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         for (let i = 0; i <= steps; i++) {
             setTimeout(() => {
-                const interpolatedCoords = route.map(([lng, lat], index) => {
-                    const start = route[0][index];
-                    const end = route[1][index];
-                    return start + (end - start) * (i / steps);
-                });
-
+                const interpolatedCoords = [
+                    route[0][0] + (route[1][0] - route[0][0]) * (i / steps),
+                    route[0][1] + (route[1][1] - route[0][1]) * (i / steps)
+                ];
                 line.geometry.coordinates.push(interpolatedCoords);
-                map.getSource(sourceId).setData(line);
+                map.getSource(routeSourceId).setData(line);
             }, i * interval);
         }
     }
@@ -84,12 +96,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             return;
         }
 
-        // Clear existing markers if needed
-        map.getContainer().querySelectorAll(".mapboxgl-marker").forEach(marker => marker.remove());
-
-        // Add origin and destination markers
-        addMarker(map, [origin.longitude, origin.latitude], `<b>Origin:</b> ${origin.name}`);
-        addMarker(map, [destination.longitude, destination.latitude], `<b>Destination:</b> ${destination.name}`);
+        // Update markers
+        updateMarkers(map, origin, destination);
 
         // Fly to bounds
         const bounds = new mapboxgl.LngLatBounds();
