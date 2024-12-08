@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     function calculateMetrics(origin, destination, isRoundTrip, flightClassMultiplier) {
         const distance = haversineDistance(origin.latitude, origin.longitude, destination.latitude, destination.longitude);
-        const roundTripMultiplier = isRoundTrip ? 1 : 2; // Flip logic for round trip and one way
+        const roundTripMultiplier = isRoundTrip ? 2 : 1; // Fixed logic for round trip and one way
         const totalDistance = distance * roundTripMultiplier;
 
         const carbonCost = totalDistance * flightClassMultiplier;
@@ -67,12 +67,12 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     function updateFields(metrics, origin, destination) {
         if (origin) {
-            originCoordinatesField.textContent = ${origin.latitude}, ${origin.longitude};
-            console.log("Origin Coordinates:", ${origin.latitude}, ${origin.longitude});
+            originCoordinatesField.textContent = `${origin.latitude}, ${origin.longitude}`;
+            console.log("Origin Coordinates:", `${origin.latitude}, ${origin.longitude}`);
         }
         if (destination) {
-            destinationCoordinatesField.textContent = ${destination.latitude}, ${destination.longitude};
-            console.log("Destination Coordinates:", ${destination.latitude}, ${destination.longitude});
+            destinationCoordinatesField.textContent = `${destination.latitude}, ${destination.longitude}`;
+            console.log("Destination Coordinates:", `${destination.latitude}, ${destination.longitude}`);
         }
 
         if (metrics) {
@@ -100,7 +100,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         updateFields(metrics, origin, destination);
     }
 
-    // Function to attach dropdown to input field
     function attachDropdown(inputField, airports) {
         const dropdownContainer = document.createElement('div');
         dropdownContainer.style.position = 'absolute';
@@ -109,19 +108,18 @@ document.addEventListener("DOMContentLoaded", async function () {
         dropdownContainer.style.border = '1px solid #ccc';
         dropdownContainer.style.maxHeight = '150px';
         dropdownContainer.style.overflowY = 'auto';
-        dropdownContainer.style.display = 'none'; // Hidden by default
+        dropdownContainer.style.display = 'none';
         document.body.appendChild(dropdownContainer);
 
         function populateDropdown(inputField, dropdownContainer, airports) {
-            dropdownContainer.innerHTML = ''; // Clear existing options
+            dropdownContainer.innerHTML = '';
             const searchTerm = inputField.value.toLowerCase();
 
-            // Filter airports based on input
             const filteredAirports = airports.filter(airport =>
                 airport.name.toLowerCase().includes(searchTerm) ||
                 airport.municipality.toLowerCase().includes(searchTerm) ||
                 airport.iata_code.toLowerCase().includes(searchTerm)
-            ).slice(0, 4); // Limit to top 4 results
+            ).slice(0, 4);
 
             if (filteredAirports.length > 0) {
                 filteredAirports.forEach((airport, index) => {
@@ -129,7 +127,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                     option.style.padding = '8px';
                     option.style.cursor = 'pointer';
                     option.style.borderBottom = '1px solid #ddd';
-                    option.textContent = ${airport.name} (${airport.iata_code});
+                    option.textContent = `${airport.name} (${airport.iata_code})`;
 
                     if (index === 0) {
                         option.style.backgroundColor = '#f0f0f0';
@@ -144,15 +142,15 @@ document.addEventListener("DOMContentLoaded", async function () {
                     });
 
                     option.addEventListener('click', function () {
-                        inputField.value = ${airport.name};
+                        inputField.value = `${airport.name}`;
                         inputField.dataset.iataCode = airport.iata_code;
                         dropdownContainer.style.display = 'none';
-                        handleSelectionChange(); // Trigger calculation on selection
+                        handleSelectionChange();
                     });
 
                     dropdownContainer.appendChild(option);
                 });
-                dropdownContainer.style.display = 'block'; // Show dropdown
+                dropdownContainer.style.display = 'block';
             } else {
                 const noResult = document.createElement('div');
                 noResult.style.padding = '8px';
@@ -163,33 +161,30 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         }
 
-        // Event listener to update dropdown on input
         inputField.addEventListener('input', function () {
             if (inputField.value.trim().length > 0) {
                 const rect = inputField.getBoundingClientRect();
-                dropdownContainer.style.top = ${window.scrollY + rect.bottom}px;
-                dropdownContainer.style.left = ${window.scrollX + rect.left}px;
-                dropdownContainer.style.width = ${inputField.offsetWidth}px;
+                dropdownContainer.style.top = `${window.scrollY + rect.bottom}px`;
+                dropdownContainer.style.left = `${window.scrollX + rect.left}px`;
+                dropdownContainer.style.width = `${inputField.offsetWidth}px`;
                 populateDropdown(inputField, dropdownContainer, airports);
             } else {
-                dropdownContainer.style.display = 'none'; // Hide dropdown if input is empty
+                dropdownContainer.style.display = 'none';
             }
         });
 
-        // Hide dropdown on blur
         inputField.addEventListener('blur', function () {
             setTimeout(() => {
                 dropdownContainer.style.display = 'none';
-            }, 200); // Slight delay to allow selection
+            }, 200);
         });
 
-        // Event listener for Enter key to select top result
         inputField.addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
                 const firstOption = dropdownContainer.querySelector('div');
                 if (firstOption) {
                     firstOption.click();
-                    event.preventDefault(); // Prevent form submission or default behavior
+                    event.preventDefault();
                 }
             }
         });
@@ -203,6 +198,5 @@ document.addEventListener("DOMContentLoaded", async function () {
     roundTripCheckbox.addEventListener("change", handleSelectionChange);
     flightClassRadios.forEach(radio => radio.addEventListener("change", handleSelectionChange));
 
-    // Trigger initial calculation with default values
     handleSelectionChange();
 });
