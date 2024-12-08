@@ -66,13 +66,22 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     function updateFields(metrics, origin, destination) {
-        originCoordinatesField.textContent = `${origin.latitude}, ${origin.longitude}`;
-        destinationCoordinatesField.textContent = `${destination.latitude}, ${destination.longitude}`;
-        totalMilesField.textContent = metrics.totalDistance.toFixed(2);
-        carbonCostField.textContent = metrics.carbonCost.toFixed(2);
-        panelsToOffsetField.textContent = metrics.panelsNeeded;
+        if (origin) {
+            originCoordinatesField.textContent = `${origin.latitude}, ${origin.longitude}`;
+            console.log("Origin Coordinates:", `${origin.latitude}, ${origin.longitude}`);
+        }
+        if (destination) {
+            destinationCoordinatesField.textContent = `${destination.latitude}, ${destination.longitude}`;
+            console.log("Destination Coordinates:", `${destination.latitude}, ${destination.longitude}`);
+        }
 
-        console.log("Metrics:", metrics);
+        if (metrics) {
+            totalMilesField.textContent = metrics.totalDistance.toFixed(2);
+            carbonCostField.textContent = metrics.carbonCost.toFixed(2);
+            panelsToOffsetField.textContent = metrics.panelsNeeded;
+
+            console.log("Metrics:", metrics);
+        }
     }
 
     const airportData = await fetchAirportData();
@@ -84,16 +93,21 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const flightClassMultiplier = parseFloat(Array.from(flightClassRadios).find(radio => radio.checked)?.value) || 0.15; // Default to coach multiplier
 
-        if (!originIATA || !destinationIATA) {
-            console.log("Please make all selections to calculate metrics.");
+        const origin = originIATA ? airportData.find(airport => airport.iata_code === originIATA) : null;
+        const destination = destinationIATA ? airportData.find(airport => airport.iata_code === destinationIATA) : null;
+
+        if (!origin && !destination) {
+            console.log("Waiting for both airport selections.");
             return;
         }
 
-        const origin = airportData.find(airport => airport.iata_code === originIATA);
-        const destination = airportData.find(airport => airport.iata_code === destinationIATA);
+        if (origin && !destination) {
+            updateFields(null, origin, null);
+            return;
+        }
 
-        if (!origin || !destination) {
-            console.log("Invalid airport selection.");
+        if (destination && !origin) {
+            updateFields(null, null, destination);
             return;
         }
 
