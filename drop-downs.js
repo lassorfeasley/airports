@@ -1,8 +1,19 @@
 document.addEventListener("DOMContentLoaded", async function () {
-    const originDropdown = document.getElementById("origin-dropdown");
-    const destinationDropdown = document.getElementById("destination-dropdown");
+    const mapboxAccessToken = "pk.eyJ1IjoibGFzc29yLWZlYXNsZXkiLCJhIjoiY2xocTdpenBxMW1vcDNqbnUwaXZ3YjZvdSJ9.yAmcJgAq3-ts7qthbc4njg"; // Replace with your Mapbox token
+    const mapStyle = "mapbox://styles/lassor-feasley/cloonclal00bj01ns6c7q6aay"; // Replace with your Mapbox style URL
 
-    // Fetch and parse airport data
+    // Initialize the Mapbox map
+    mapboxgl.accessToken = mapboxAccessToken;
+    const map = new mapboxgl.Map({
+        container: 'map', // ID of the map container element
+        style: mapStyle,
+        center: [0, 0], // Default center [longitude, latitude]
+        zoom: 2 // Default zoom level
+    });
+
+    let markers = [];
+    let routeLine = null;
+
     async function fetchAirportData() {
         try {
             const response = await fetch("https://davidmegginson.github.io/ourairports-data/airports.csv");
@@ -23,14 +34,124 @@ document.addEventListener("DOMContentLoaded", async function () {
                 airports.push({
                     name: fields[3].replace(/"/g, ""),
                     municipality: fields[10].replace(/"/g, ""),
-                    iata_code: fields[13].replace(/"/g, "")
+                    iata_code: fields[13].replace(/"/g, ""),
+                    latitude: parseFloat(fields[4]),
+                    longitude: parseFloat(fields[5])
                 });
             }
         }
         return airports;
     }
 
-    // Function to attach dropdown to input field
+    function addMarker(latitude, longitude) {
+        console.log(`Attempting to add marker at: ${latitude}, ${longitude}`); // Debug log
+        const marker = new mapboxgl.Marker()
+            .setLngLat([longitude, latitude])
+            .addTo(map);
+
+        markers.push(marker);
+
+        console.log(`Markers array:`, markers); // Debug log
+
+        if (markers.length === 2) {
+            drawRoute(markers[0].getLngLat(), markers[1].getLngLat());
+        }
+    }
+
+    function drawRoute(start, end) {
+        console.log(`Drawing route from ${start} to ${end}`); // Debug log
+        if (routeLine) {
+            map.removeLayer("route");
+            map.removeSource("route");
+        }
+
+        const route = {
+            type: "Feature",
+            geometry: {
+                type: "LineString",
+                coordinates: [
+                    [start.lng, start.lat],
+                    [end.lng, end.lat]
+                ]
+            }
+        };
+
+        map.addSource("route", {
+            type: "geojson",
+            data: route
+        });
+
+        map.addLayer({
+            id: "route",
+            type: "line",
+            source: "route",
+            layout: {},
+            paint: {
+                "line-color": "#ff0000",
+                "line-width": 4
+            }
+        });
+
+        animateRoute(route.geometry.coordinates);
+    }
+
+    function animateRoute(coordinates) {
+        console.log(`Animating route:`, coordinates); // Debug log
+        const frames = 180; // 3 seconds at 60fps
+        const step = 1 / frames;
+
+        let i = 0;
+        const animatedCoordinates = [coordinates[0]];
+
+        function animate() {
+            if (i < 1) {
+                const interpolatedPoint = [
+                    coordinates[0][0] + (coordinates[1][0] - coordinates[0][0]) * i,
+                    coordinates[0][1] + (coordinates[1][1] - coordinates[0][1]) * i
+                ];
+
+                animatedCoordinates.push(interpolatedPoint);
+                map.getSource("route").setData({
+                    type: "Feature",
+                    geometry: {
+                        type: "LineString",
+                        coordinates: animatedCoordinates
+                    }
+                });
+
+                i += step;
+                requestAnimationFrame(animate);
+            } else {
+                // Complete the line animation
+                map.getSource("route").setData({
+                    type: "Feature",
+                    geometry: {
+                        type: "LineString",
+                        coordinates: coordinates
+                    }
+                });
+            }
+        }
+
+        animate();
+    }
+
+    // Event listener for airport selection
+    function handleAirportSelection(lat, lng, isOrigin) {
+        if (isNaN(lat) || isNaN(lng)) {
+            console.error(`Invalid coordinates: lat=${lat}, lng=${lng}`); // Debug log for invalid data
+            return;
+        }
+
+        addMarker(lat, lng);
+
+        if (isOrigin) {
+            map.flyTo({ center: [lng, lat], zoom: 6 });
+        }
+    }
+
+    const airportData = await fetchAirportData();
+
     function attachDropdown(inputField, airports) {
         const dropdownContainer = document.createElement('div');
         dropdownContainer.style.position = 'absolute';
@@ -46,7 +167,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             dropdownContainer.innerHTML = ''; // Clear existing options
             const searchTerm = inputField.value.toLowerCase();
 
-            // Filter airports based on input
             const filteredAirports = airports.filter(airport =>
                 airport.name.toLowerCase().includes(searchTerm) ||
                 airport.municipality.toLowerCase().includes(searchTerm) ||
@@ -77,6 +197,9 @@ document.addEventListener("DOMContentLoaded", async function () {
                         inputField.value = `${airport.name}`;
                         inputField.dataset.iataCode = airport.iata_code;
                         dropdownContainer.style.display = 'none';
+                        const lat = airport.latitude;
+                        const lng = airport.longitude;
+                        handleAirportSelection(lat, lng, inputField.id === "origin-dropdown");
                     });
 
                     dropdownContainer.appendChild(option);
@@ -92,7 +215,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         }
 
-        // Event listener to update dropdown on input
         inputField.addEventListener('input', function () {
             if (inputField.value.trim().length > 0) {
                 const rect = inputField.getBoundingClientRect();
@@ -105,14 +227,12 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         });
 
-        // Hide dropdown on blur
         inputField.addEventListener('blur', function () {
             setTimeout(() => {
                 dropdownContainer.style.display = 'none';
             }, 200); // Slight delay to allow selection
         });
 
-        // Event listener for Enter key to select top result
         inputField.addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
                 const firstOption = dropdownContainer.querySelector('div');
@@ -124,7 +244,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
     }
 
-    const airportData = await fetchAirportData();
-    attachDropdown(originDropdown, airportData);
-    attachDropdown(destinationDropdown, airportData);
+    attachDropdown(document.getElementById("origin-dropdown"), airportData);
+    attachDropdown(document.getElementById("destination-dropdown"), airportData);
 });
