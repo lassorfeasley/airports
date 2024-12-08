@@ -8,8 +8,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         container: 'map', // ID of the map container element
         style: mapStyle,
         center: [0, 0], // Default center [longitude, latitude]
-        zoom: 2, // Default zoom level
-        interactive: false // Disable all map interactions
+        zoom: 2 // Default zoom level
     });
 
     let markers = [];
@@ -102,25 +101,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                 "line-width": 4
             }
         });
-
-        if (getDistance(start, end) > 20037.5 / 2) {
-            rotation = 0; // Restart rotation if distance exceeds half the circumference
-        }
-    }
-
-    function getDistance(coord1, coord2) {
-        const R = 6371; // Earth's radius in kilometers
-        const lat1 = coord1.lat * Math.PI / 180;
-        const lat2 = coord2.lat * Math.PI / 180;
-        const deltaLat = (coord2.lat - coord1.lat) * Math.PI / 180;
-        const deltaLng = (coord2.lng - coord1.lng) * Math.PI / 180;
-
-        const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-                  Math.cos(lat1) * Math.cos(lat2) *
-                  Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        return R * c; // Distance in kilometers
     }
 
     async function attachDropdown(inputField, airports) {
