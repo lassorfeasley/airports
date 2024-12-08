@@ -149,15 +149,23 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     const airportData = await fetchAirportData();
 
+    function updateDataset(dropdown, airport) {
+        if (airport) {
+            dropdown.dataset.iataCode = airport.iata_code;
+        } else {
+            delete dropdown.dataset.iataCode;
+        }
+    }
+
     function handleSelectionChange() {
         const originDropdown = document.getElementById("origin-dropdown");
         const destinationDropdown = document.getElementById("destination-dropdown");
 
-        const originIATA = originDropdown.dataset.iataCode;
-        const destinationIATA = destinationDropdown.dataset.iataCode;
+        const origin = airportData.find(airport => airport.name.toLowerCase().includes(originDropdown.value.toLowerCase()));
+        const destination = airportData.find(airport => airport.name.toLowerCase().includes(destinationDropdown.value.toLowerCase()));
 
-        const origin = originIATA ? airportData.find(airport => airport.iata_code === originIATA) : null;
-        const destination = destinationIATA ? airportData.find(airport => airport.iata_code === destinationIATA) : null;
+        updateDataset(originDropdown, origin);
+        updateDataset(destinationDropdown, destination);
 
         updateMap(map, origin, destination);
     }
