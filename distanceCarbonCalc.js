@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     function calculateMetrics(origin, destination, isRoundTrip, flightClassMultiplier) {
         const distance = haversineDistance(origin.latitude, origin.longitude, destination.latitude, destination.longitude);
-        const roundTripMultiplier = isRoundTrip ? 2 : 1;
+        const roundTripMultiplier = isRoundTrip ? 1 : 2; // Reverse logic for round trip and one way
         const totalDistance = distance * roundTripMultiplier;
 
         const carbonCost = totalDistance * flightClassMultiplier;
@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         const destinationIATA = destinationDropdown.dataset.iataCode;
         const isRoundTrip = roundTripCheckbox.checked;
 
-        const flightClassMultiplier = parseFloat(Array.from(flightClassRadios).find(radio => radio.checked)?.value) || 0.15; // Default to coach multiplier
+        const flightClassMultiplier = parseFloat(Array.from(flightClassRadios).find(radio => radio.checked)?.value || 0.15); // Default to coach multiplier
 
         const origin = originIATA ? airportData.find(airport => airport.iata_code === originIATA) : null;
         const destination = destinationIATA ? airportData.find(airport => airport.iata_code === destinationIATA) : null;
