@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
         container: 'map', // ID of the map container element
         style: mapStyle,
         center: [0, 0], // Default center [longitude, latitude]
-        zoom: 2 // Default zoom level
+        zoom: 1.5 // Default zoom level
     });
 
     let markers = [];
