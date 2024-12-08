@@ -33,7 +33,13 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Function to attach dropdown to input field
     function attachDropdown(inputField, airports) {
         const dropdownContainer = document.createElement('div');
-        dropdownContainer.classList.add('custom-dropdown');
+        dropdownContainer.style.position = 'absolute';
+        dropdownContainer.style.zIndex = '1000';
+        dropdownContainer.style.backgroundColor = 'white';
+        dropdownContainer.style.border = '1px solid #ccc';
+        dropdownContainer.style.maxHeight = '150px';
+        dropdownContainer.style.overflowY = 'auto';
+        dropdownContainer.style.display = 'none'; // Hidden by default
         document.body.appendChild(dropdownContainer);
 
         function populateDropdown(inputField, dropdownContainer, airports) {
@@ -50,11 +56,22 @@ document.addEventListener("DOMContentLoaded", async function () {
             if (filteredAirports.length > 0) {
                 filteredAirports.forEach((airport, index) => {
                     const option = document.createElement('div');
-                    option.classList.add('dropdown-option');
-                    if (index === 0) {
-                        option.classList.add('selected'); // Add selected class to the first option
-                    }
+                    option.style.padding = '8px';
+                    option.style.cursor = 'pointer';
+                    option.style.borderBottom = '1px solid #ddd';
                     option.textContent = `${airport.name} (${airport.iata_code})`;
+
+                    if (index === 0) {
+                        option.style.backgroundColor = '#f0f0f0';
+                    }
+
+                    option.addEventListener('mouseover', function () {
+                        option.style.backgroundColor = '#e0e0e0';
+                    });
+
+                    option.addEventListener('mouseout', function () {
+                        option.style.backgroundColor = index === 0 ? '#f0f0f0' : 'white';
+                    });
 
                     option.addEventListener('click', function () {
                         inputField.value = `${airport.name}`;
@@ -67,7 +84,8 @@ document.addEventListener("DOMContentLoaded", async function () {
                 dropdownContainer.style.display = 'block'; // Show dropdown
             } else {
                 const noResult = document.createElement('div');
-                noResult.classList.add('dropdown-option', 'no-result');
+                noResult.style.padding = '8px';
+                noResult.style.color = 'gray';
                 noResult.textContent = 'No results found';
                 dropdownContainer.appendChild(noResult);
                 dropdownContainer.style.display = 'block';
@@ -97,7 +115,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         // Event listener for Enter key to select top result
         inputField.addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
-                const firstOption = dropdownContainer.querySelector('.dropdown-option');
+                const firstOption = dropdownContainer.querySelector('div');
                 if (firstOption) {
                     firstOption.click();
                     event.preventDefault(); // Prevent form submission or default behavior
