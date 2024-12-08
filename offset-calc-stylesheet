@@ -7,15 +7,15 @@
     border: 1px solid #ccc;
     max-height: 150px;
     overflow-y: auto;
-    display: none; /* Hidden by default */
-    visibility: visible; /* Ensure container is visible */
+    display: block !important; /* Force visibility for debugging */
+    visibility: visible;
 }
 
 .dropdown-option {
     padding: 8px;
     cursor: pointer;
     border-bottom: 1px solid #ddd;
-    visibility: visible; /* Ensure options are visible */
+    visibility: visible;
 }
 
 .dropdown-option:first-child {
