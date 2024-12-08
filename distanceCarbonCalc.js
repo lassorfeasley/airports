@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     function calculateMetrics(origin, destination, isRoundTrip, flightClassMultiplier) {
         const distance = haversineDistance(origin.latitude, origin.longitude, destination.latitude, destination.longitude);
-        const roundTripMultiplier = isRoundTrip ? 1 : 2; // Reverse logic for round trip and one way
+        const roundTripMultiplier = isRoundTrip ? 2 : 1; // Correct logic for round trip and one way
         const totalDistance = distance * roundTripMultiplier;
 
         const carbonCost = totalDistance * flightClassMultiplier;
