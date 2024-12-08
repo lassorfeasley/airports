@@ -124,29 +124,41 @@ document.addEventListener("DOMContentLoaded", function () {
     // Mock integration with dropdown selection
     document.getElementById("origin-dropdown").addEventListener("change", function (e) {
         const selectedOption = e.target.options[e.target.selectedIndex];
+        if (!selectedOption) {
+            console.error("No option selected in origin dropdown.");
+            return;
+        }
+
         console.log(`Origin dropdown changed:`, selectedOption); // Debug log
 
-        if (selectedOption.dataset.lat && selectedOption.dataset.lng) {
-            const lat = parseFloat(selectedOption.dataset.lat);
-            const lng = parseFloat(selectedOption.dataset.lng);
-            console.log(`Origin selected: lat=${lat}, lng=${lng}`); // Debug log
-            handleAirportSelection(lat, lng, true);
+        const lat = parseFloat(selectedOption.dataset.lat || "NaN");
+        const lng = parseFloat(selectedOption.dataset.lng || "NaN");
+
+        if (isNaN(lat) || isNaN(lng)) {
+            console.error(`Invalid origin coordinates: lat=${lat}, lng=${lng}`);
         } else {
-            console.error(`Missing data attributes on origin option`);
+            console.log(`Origin selected: lat=${lat}, lng=${lng}`);
+            handleAirportSelection(lat, lng, true);
         }
     });
 
     document.getElementById("destination-dropdown").addEventListener("change", function (e) {
         const selectedOption = e.target.options[e.target.selectedIndex];
+        if (!selectedOption) {
+            console.error("No option selected in destination dropdown.");
+            return;
+        }
+
         console.log(`Destination dropdown changed:`, selectedOption); // Debug log
 
-        if (selectedOption.dataset.lat && selectedOption.dataset.lng) {
-            const lat = parseFloat(selectedOption.dataset.lat);
-            const lng = parseFloat(selectedOption.dataset.lng);
-            console.log(`Destination selected: lat=${lat}, lng=${lng}`); // Debug log
-            handleAirportSelection(lat, lng, false);
+        const lat = parseFloat(selectedOption.dataset.lat || "NaN");
+        const lng = parseFloat(selectedOption.dataset.lng || "NaN");
+
+        if (isNaN(lat) || isNaN(lng)) {
+            console.error(`Invalid destination coordinates: lat=${lat}, lng=${lng}`);
         } else {
-            console.error(`Missing data attributes on destination option`);
+            console.log(`Destination selected: lat=${lat}, lng=${lng}`);
+            handleAirportSelection(lat, lng, false);
         }
     });
 });
