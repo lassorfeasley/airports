@@ -66,11 +66,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     function updateFields(metrics, origin, destination) {
-        originCoordinatesField.value = `${origin.latitude}, ${origin.longitude}`;
-        destinationCoordinatesField.value = `${destination.latitude}, ${destination.longitude}`;
-        totalMilesField.value = metrics.totalDistance.toFixed(2);
-        carbonCostField.value = metrics.carbonCost.toFixed(2);
-        panelsToOffsetField.value = metrics.panelsNeeded.toFixed(2);
+        originCoordinatesField.textContent = `${origin.latitude}, ${origin.longitude}`;
+        destinationCoordinatesField.textContent = `${destination.latitude}, ${destination.longitude}`;
+        totalMilesField.textContent = metrics.totalDistance.toFixed(2);
+        carbonCostField.textContent = metrics.carbonCost.toFixed(2);
+        panelsToOffsetField.textContent = metrics.panelsNeeded.toFixed(2);
 
         console.log("Metrics:", metrics);
     }
