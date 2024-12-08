@@ -1,60 +1,103 @@
-// This script calculates the distance between the two selected airports and displays the result
-// in the corresponding text boxes in Webflow
+document.addEventListener("DOMContentLoaded", async function () {
+    const originDropdown = document.getElementById("origin-dropdown");
+    const destinationDropdown = document.getElementById("destination-dropdown");
+    const roundTripCheckbox = document.getElementById("roundtrip-checkbox");
+    const flightClassRadios = document.querySelectorAll("input[name='class']");
 
-// Webflow field IDs
-const originFieldId = 'origin-dropdown';
-const destinationFieldId = 'destination-dropdown';
-const originCoordinatesFieldId = 'Origin-coordinates';
-const destinationCoordinatesFieldId = 'Destination-coordinates';
-const totalDistanceFieldId = 'Total-distance';
+    const originCoordinatesField = document.getElementById("Origin-coordinates");
+    const destinationCoordinatesField = document.getElementById("Destination-coordinates");
+    const totalMilesField = document.getElementById("Total-miles");
+    const carbonCostField = document.getElementById("carbon-cost");
+    const panelsToOffsetField = document.getElementById("panels-to-offset");
 
-// Function to calculate the distance between two coordinates using the Haversine formula
-function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 3958.8; // Radius of the Earth in miles
-    const dLat = (lat2 - lat1) * (Math.PI / 180);
-    const dLon = (lon2 - lon1) * (Math.PI / 180);
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // Distance in miles
-}
-
-// Main function to get coordinates and calculate distance
-function calculateAndDisplayDistance() {
-    const originInput = document.getElementById(originFieldId);
-    const destinationInput = document.getElementById(destinationFieldId);
-
-    // Retrieve coordinates from the input elements' data attributes
-    const originLatitude = parseFloat(originInput.dataset.latitude);
-    const originLongitude = parseFloat(originInput.dataset.longitude);
-    const destinationLatitude = parseFloat(destinationInput.dataset.latitude);
-    const destinationLongitude = parseFloat(destinationInput.dataset.longitude);
-
-    // Ensure both airports have been selected
-    if (!isNaN(originLatitude) && !isNaN(originLongitude) && !isNaN(destinationLatitude) && !isNaN(destinationLongitude)) {
-        // Calculate distance
-        const distance = calculateDistance(originLatitude, originLongitude, destinationLatitude, destinationLongitude);
-
-        // Display coordinates in the Webflow text boxes
-        document.getElementById(originCoordinatesFieldId).textContent = `Lat: ${originLatitude.toFixed(4)}, Lon: ${originLongitude.toFixed(4)}`;
-        document.getElementById(destinationCoordinatesFieldId).textContent = `Lat: ${destinationLatitude.toFixed(4)}, Lon: ${destinationLongitude.toFixed(4)}`;
-
-        // Display distance in the Webflow text box
-        document.getElementById(totalDistanceFieldId).textContent = `${distance.toFixed(2)} miles`;
-    } else {
-        console.log('Please select both origin and destination airports.');
+    async function fetchAirportData() {
+        try {
+            const response = await fetch("https://davidmegginson.github.io/ourairports-data/airports.csv");
+            const data = await response.text();
+            return parseCSV(data);
+        } catch (error) {
+            console.error("Error fetching airport data:", error);
+            return [];
+        }
     }
-}
 
-// Event listeners for when the user selects an airport
-document.getElementById(originFieldId).addEventListener('input', calculateAndDisplayDistance);
-document.getElementById(destinationFieldId).addEventListener('input', calculateAndDisplayDistance);
-
-// Additional listener to handle selection from dropdown options
-document.addEventListener('click', function(event) {
-    if (event.target.classList.contains('dropdown-option')) {
-        calculateAndDisplayDistance(); // Call the function when an option is selected
+    function parseCSV(data) {
+        const lines = data.split("\n");
+        const airports = [];
+        for (let i = 1; i < lines.length; i++) {
+            const fields = lines[i].split(",");
+            if (fields[2] === '"large_airport"' && fields[13]) {
+                airports.push({
+                    name: fields[3].replace(/"/g, ""),
+                    municipality: fields[10].replace(/"/g, ""),
+                    iata_code: fields[13].replace(/"/g, ""),
+                    latitude: parseFloat(fields[4]),
+                    longitude: parseFloat(fields[5])
+                });
+            }
+        }
+        return airports;
     }
+
+    function haversineDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radius of the Earth in kilometers
+        const toRadians = degrees => degrees * (Math.PI / 180);
+
+        const dLat = toRadians(lat2 - lat1);
+        const dLon = toRadians(lon2 - lon1);
+
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c; // Distance in kilometers
+    }
+
+    function calculateMetrics(origin, destination, isRoundTrip, flightClassMultiplier) {
+        const distance = haversineDistance(origin.latitude, origin.longitude, destination.latitude, destination.longitude);
+        const roundTripMultiplier = isRoundTrip ? 2 : 1;
+        const totalDistance = distance * roundTripMultiplier;
+
+        const carbonCost = totalDistance * flightClassMultiplier;
+        const panelsNeeded = carbonCost * 0.01; // Panels needed per kg of CO2
+
+        return { totalDistance, carbonCost, panelsNeeded };
+    }
+
+    function updateFields(metrics, origin, destination) {
+        originCoordinatesField.value = `${origin.latitude}, ${origin.longitude}`;
+        destinationCoordinatesField.value = `${destination.latitude}, ${destination.longitude}`;
+        totalMilesField.value = metrics.totalDistance.toFixed(2);
+        carbonCostField.value = metrics.carbonCost.toFixed(2);
+        panelsToOffsetField.value = metrics.panelsNeeded.toFixed(2);
+
+        console.log("Metrics:", metrics);
+    }
+
+    const airportData = await fetchAirportData();
+
+    document.getElementById("calculate-button").addEventListener("click", function () {
+        const originIATA = originDropdown.dataset.iataCode;
+        const destinationIATA = destinationDropdown.dataset.iataCode;
+        const isRoundTrip = roundTripCheckbox.checked;
+
+        const flightClassMultiplier = parseFloat(Array.from(flightClassRadios).find(radio => radio.checked)?.value);
+
+        if (!originIATA || !destinationIATA || isNaN(flightClassMultiplier)) {
+            alert("Please make all selections before calculating.");
+            return;
+        }
+
+        const origin = airportData.find(airport => airport.iata_code === originIATA);
+        const destination = airportData.find(airport => airport.iata_code === destinationIATA);
+
+        if (!origin || !destination) {
+            alert("Invalid airport selection.");
+            return;
+        }
+
+        const metrics = calculateMetrics(origin, destination, isRoundTrip, flightClassMultiplier);
+        updateFields(metrics, origin, destination);
+    });
 });
