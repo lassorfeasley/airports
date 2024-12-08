@@ -111,12 +111,22 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         });
 
-        // Hide dropdown on blur and select the closest match
+        // Hide dropdown on blur and ensure the value persists
         inputField.addEventListener('blur', function () {
             setTimeout(() => {
                 const firstOption = dropdownContainer.querySelector('.dropdown-option');
                 if (firstOption && inputField.value.trim().length > 0) {
-                    firstOption.click();
+                    const selectedText = firstOption.textContent;
+                    const [name, iataCode] = selectedText.split(' (');
+                    inputField.value = name.trim();
+                    inputField.dataset.iataCode = iataCode.replace(')', '').trim();
+
+                    // Set coordinates if applicable
+                    const matchedAirport = airports.find(airport => airport.name === name.trim());
+                    if (matchedAirport) {
+                        coordinatesField.value = `${matchedAirport.latitude}, ${matchedAirport.longitude}`;
+                        console.log(`Blur selected coordinates: ${matchedAirport.latitude}, ${matchedAirport.longitude}`);
+                    }
                 }
                 dropdownContainer.style.display = 'none';
             }, 200); // Slight delay to allow selection
