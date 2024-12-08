@@ -96,18 +96,20 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     function updateMap(map, origin, destination) {
+        if (!origin && !destination) {
+            return; // Do not update the map if no valid selection exists
+        }
+
         // Update markers if one or both airports are selected
         updateMarkers(map, origin, destination);
 
         // If both origin and destination are available, animate route and adjust bounds
         if (origin && destination) {
-            // Fly to bounds
             const bounds = new mapboxgl.LngLatBounds();
             bounds.extend([origin.longitude, origin.latitude]);
             bounds.extend([destination.longitude, destination.latitude]);
             map.fitBounds(bounds, { padding: 50 });
 
-            // Animate the route
             animateRoute(map, origin, destination);
         } else if (origin || destination) {
             // Center on the selected location if only one is selected
