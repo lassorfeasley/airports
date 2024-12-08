@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         function populateDropdown(inputField, dropdownContainer, airports) {
             dropdownContainer.innerHTML = ''; // Clear existing options
+            currentIndex = -1; // Reset index when dropdown is rebuilt
             const searchTerm = inputField.value.toLowerCase();
 
             // Filter airports based on input
@@ -108,6 +109,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                     }
                     currentIndex++;
                     options[currentIndex].classList.add('selected');
+                    options[currentIndex].scrollIntoView({ block: "nearest" }); // Ensure visibility
                 }
             } else if (event.key === 'ArrowUp') {
                 event.preventDefault();
@@ -115,6 +117,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                     options[currentIndex].classList.remove('selected');
                     currentIndex--;
                     options[currentIndex].classList.add('selected');
+                    options[currentIndex].scrollIntoView({ block: "nearest" }); // Ensure visibility
                 }
             } else if (event.key === 'Enter') {
                 event.preventDefault();
