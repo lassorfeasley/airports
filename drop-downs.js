@@ -106,18 +106,15 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         });
 
-        // Hide dropdown on blur and reset input if invalid
+        // Hide dropdown on blur and select the closest match
         inputField.addEventListener('blur', function () {
             setTimeout(() => {
-                const selectedOption = Array.from(dropdownContainer.children).find(option =>
-                    option.textContent === `${inputField.value} (${inputField.dataset.iataCode})`
-                );
-
-                if (!selectedOption) {
-                    inputField.value = ''; // Clear input if no valid selection
-                    delete inputField.dataset.iataCode; // Remove invalid data
+                if (inputField.value.trim().length > 0) {
+                    const firstOption = dropdownContainer.querySelector('div');
+                    if (firstOption) {
+                        firstOption.click();
+                    }
                 }
-
                 dropdownContainer.style.display = 'none';
             }, 200); // Slight delay to allow selection
         });
