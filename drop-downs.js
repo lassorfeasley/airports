@@ -109,11 +109,12 @@ document.addEventListener("DOMContentLoaded", async function () {
         // Hide dropdown on blur and select the closest match
         inputField.addEventListener('blur', function () {
             setTimeout(() => {
-                if (inputField.value.trim().length > 0) {
-                    const firstOption = dropdownContainer.querySelector('div');
-                    if (firstOption) {
-                        firstOption.click();
-                    }
+                const firstOption = dropdownContainer.querySelector('.dropdown-option');
+                if (firstOption && inputField.value.trim().length > 0) {
+                    firstOption.click();
+                } else if (!firstOption) {
+                    inputField.value = ''; // Clear input if no valid match exists
+                    delete inputField.dataset.iataCode;
                 }
                 dropdownContainer.style.display = 'none';
             }, 200); // Slight delay to allow selection
@@ -122,7 +123,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         // Event listener for Enter key to select top result
         inputField.addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
-                const firstOption = dropdownContainer.querySelector('div');
+                const firstOption = dropdownContainer.querySelector('.dropdown-option');
                 if (firstOption) {
                     firstOption.click();
                     event.preventDefault(); // Prevent form submission or default behavior
