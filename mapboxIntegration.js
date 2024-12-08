@@ -27,21 +27,21 @@ document.addEventListener("DOMContentLoaded", async function () {
             .addTo(map);
     }
 
-    function updateMarkers(map, origin, destination) {
-        // Clear existing markers
+    function clearMarkers() {
         if (originMarker) {
             originMarker.remove();
+            originMarker = null;
         }
         if (destinationMarker) {
             destinationMarker.remove();
+            destinationMarker = null;
         }
+    }
 
-        // Add new markers
-        if (origin) {
-            originMarker = addMarker(map, [origin.longitude, origin.latitude], `<b>Origin:</b> ${origin.name}`);
-        }
-        if (destination) {
-            destinationMarker = addMarker(map, [destination.longitude, destination.latitude], `<b>Destination:</b> ${destination.name}`);
+    function clearRoute(map) {
+        if (map.getSource(routeSourceId)) {
+            map.removeLayer("routeLine");
+            map.removeSource(routeSourceId);
         }
     }
 
@@ -59,10 +59,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         };
 
-        if (map.getSource(routeSourceId)) {
-            map.removeLayer("routeLine");
-            map.removeSource(routeSourceId);
-        }
+        clearRoute(map); // Ensure previous route is cleared
 
         map.addSource(routeSourceId, {
             type: "geojson",
@@ -97,11 +94,20 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     function updateMap(map, origin, destination) {
         if (!origin && !destination) {
+            clearMarkers();
+            clearRoute(map);
             return; // Do not update the map if no valid selection exists
         }
 
-        // Update markers if one or both airports are selected
-        updateMarkers(map, origin, destination);
+        clearMarkers(); // Remove any existing markers before updating
+
+        // Add new markers if one or both airports are selected
+        if (origin) {
+            originMarker = addMarker(map, [origin.longitude, origin.latitude], `<b>Origin:</b> ${origin.name}`);
+        }
+        if (destination) {
+            destinationMarker = addMarker(map, [destination.longitude, destination.latitude], `<b>Destination:</b> ${destination.name}`);
+        }
 
         // If both origin and destination are available, animate route and adjust bounds
         if (origin && destination) {
@@ -163,8 +169,13 @@ document.addEventListener("DOMContentLoaded", async function () {
         const originDropdown = document.getElementById("origin-dropdown");
         const destinationDropdown = document.getElementById("destination-dropdown");
 
-        const origin = airportData.find(airport => airport.name.toLowerCase().includes(originDropdown.value.toLowerCase()));
-        const destination = airportData.find(airport => airport.name.toLowerCase().includes(destinationDropdown.value.toLowerCase()));
+        const origin = originDropdown.value.trim()
+            ? airportData.find(airport => airport.name.toLowerCase().includes(originDropdown.value.toLowerCase()))
+            : null;
+
+        const destination = destinationDropdown.value.trim()
+            ? airportData.find(airport => airport.name.toLowerCase().includes(destinationDropdown.value.toLowerCase()))
+            : null;
 
         updateDataset(originDropdown, origin);
         updateDataset(destinationDropdown, destination);
