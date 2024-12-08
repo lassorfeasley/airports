@@ -8,12 +8,14 @@
     max-height: 150px;
     overflow-y: auto;
     display: none; /* Hidden by default */
+    visibility: visible; /* Ensure container is visible */
 }
 
 .dropdown-option {
     padding: 8px;
     cursor: pointer;
     border-bottom: 1px solid #ddd;
+    visibility: visible; /* Ensure options are visible */
 }
 
 .dropdown-option:first-child {
@@ -22,11 +24,6 @@
 
 .dropdown-option:hover {
     background-color: #e0e0e0; /* Hover effect */
-}
-
-.dropdown-option.selected {
-    background-color: #cce5ff; /* Highlight for the currently selected option */
-    font-weight: bold;
 }
 
 .dropdown-option.no-result {
