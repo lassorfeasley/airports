@@ -96,22 +96,24 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     function updateMap(map, origin, destination) {
-        if (!origin || !destination) {
-            console.log("Missing origin or destination.");
-            return;
-        }
-
-        // Update markers
+        // Update markers if one or both airports are selected
         updateMarkers(map, origin, destination);
 
-        // Fly to bounds
-        const bounds = new mapboxgl.LngLatBounds();
-        bounds.extend([origin.longitude, origin.latitude]);
-        bounds.extend([destination.longitude, destination.latitude]);
-        map.fitBounds(bounds, { padding: 50 });
+        // If both origin and destination are available, animate route and adjust bounds
+        if (origin && destination) {
+            // Fly to bounds
+            const bounds = new mapboxgl.LngLatBounds();
+            bounds.extend([origin.longitude, origin.latitude]);
+            bounds.extend([destination.longitude, destination.latitude]);
+            map.fitBounds(bounds, { padding: 50 });
 
-        // Animate the route
-        animateRoute(map, origin, destination);
+            // Animate the route
+            animateRoute(map, origin, destination);
+        } else if (origin || destination) {
+            // Center on the selected location if only one is selected
+            const center = origin ? [origin.longitude, origin.latitude] : [destination.longitude, destination.latitude];
+            map.flyTo({ center, zoom: 6 });
+        }
     }
 
     const map = initializeMap(); // Initialize the map
@@ -154,14 +156,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         const originIATA = originDropdown.dataset.iataCode;
         const destinationIATA = destinationDropdown.dataset.iataCode;
 
-        console.log("Origin IATA:", originIATA);
-        console.log("Destination IATA:", destinationIATA);
-
         const origin = originIATA ? airportData.find(airport => airport.iata_code === originIATA) : null;
         const destination = destinationIATA ? airportData.find(airport => airport.iata_code === destinationIATA) : null;
-
-        console.log("Origin:", origin);
-        console.log("Destination:", destination);
 
         updateMap(map, origin, destination);
     }
