@@ -206,5 +206,3 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Trigger initial calculation with default values
     handleSelectionChange();
 });
-
-Here is some code I have that powers a flight offsetting calculator I am building for Renewables.org
