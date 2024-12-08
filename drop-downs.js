@@ -99,6 +99,17 @@ document.addEventListener("DOMContentLoaded", async function () {
                 dropdownContainer.style.display = 'none';
             }, 200); // Slight delay to allow selection
         });
+
+        // Event listener for Enter key to select top result
+        inputField.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                const firstOption = dropdownContainer.querySelector('.dropdown-option');
+                if (firstOption) {
+                    firstOption.click();
+                    event.preventDefault(); // Prevent form submission or default behavior
+                }
+            }
+        });
     }
 
     const airportData = await fetchAirportData();
