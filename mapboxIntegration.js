@@ -1,42 +1,81 @@
 document.addEventListener("DOMContentLoaded", async function () {
+    const mapboxAccessToken = "pk.eyJ1IjoibGFzc29yLWZlYXNsZXkiLCJhIjoiY2xocTdpenBxMW1vcDNqbnUwaXZ3YjZvdSJ9.yAmcJgAq3-ts7qthbc4njg";
+    const mapStyle = "mapbox://styles/lassor-feasley/cloonclal00bj01ns6c7q6aay";
+
     const mapContainer = document.getElementById("map-container"); // Ensure there's a div with this ID in your HTML
 
     function initializeMap() {
-        const map = L.map(mapContainer).setView([0, 0], 2); // Initialize map centered at 0,0 with zoom level 2
-
-        L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
-            id: "lassor-feasley/cloonclal00bj01ns6c7q6aay",
-            accessToken: "pk.eyJ1IjoibGFzc29yLWZlYXNsZXkiLCJhIjoiY2xocTdpenBxMW1vcDNqbnUwaXZ3YjZvdSJ9.yAmcJgAq3-ts7qthbc4njg",
-            tileSize: 512,
-            zoomOffset: -1,
-            maxZoom: 19,
-        }).addTo(map);
+        const map = new mapboxgl.Map({
+            container: mapContainer,
+            style: mapStyle,
+            center: [0, 0],
+            zoom: 2,
+            accessToken: mapboxAccessToken
+        });
 
         return map;
     }
 
+    function addMarker(map, coords, popupText) {
+        const marker = new mapboxgl.Marker()
+            .setLngLat(coords)
+            .setPopup(new mapboxgl.Popup().setHTML(popupText))
+            .addTo(map);
+
+        return marker;
+    }
+
     async function animateRoute(map, origin, destination) {
-        const latlngs = [
-            [origin.latitude, origin.longitude],
-            [destination.latitude, destination.longitude]
+        const route = [
+            [origin.longitude, origin.latitude],
+            [destination.longitude, destination.latitude]
         ];
 
-        const routeLine = L.polyline([], { color: 'blue', weight: 3 }).addTo(map);
-
-        for (let i = 0; i < latlngs.length - 1; i++) {
-            const start = latlngs[i];
-            const end = latlngs[i + 1];
-
-            const steps = 60; // Smoothness of animation
-            const interval = 3000 / steps; // Animation duration divided by steps
-
-            for (let j = 0; j <= steps; j++) {
-                setTimeout(() => {
-                    const lat = start[0] + (end[0] - start[0]) * (j / steps);
-                    const lng = start[1] + (end[1] - start[1]) * (j / steps);
-                    routeLine.addLatLng([lat, lng]);
-                }, j * interval);
+        const line = {
+            type: "Feature",
+            geometry: {
+                type: "LineString",
+                coordinates: []
             }
+        };
+
+        const sourceId = "animatedRoute";
+
+        if (map.getSource(sourceId)) {
+            map.removeLayer("routeLine");
+            map.removeSource(sourceId);
+        }
+
+        map.addSource(sourceId, {
+            type: "geojson",
+            data: line
+        });
+
+        map.addLayer({
+            id: "routeLine",
+            type: "line",
+            source: sourceId,
+            layout: {},
+            paint: {
+                "line-color": "#007cbf",
+                "line-width": 4
+            }
+        });
+
+        const steps = 60; // Smoothness of animation
+        const interval = 3000 / steps; // Animation duration divided by steps
+
+        for (let i = 0; i <= steps; i++) {
+            setTimeout(() => {
+                const interpolatedCoords = route.map(([lng, lat], index) => {
+                    const start = route[0][index];
+                    const end = route[1][index];
+                    return start + (end - start) * (i / steps);
+                });
+
+                line.geometry.coordinates.push(interpolatedCoords);
+                map.getSource(sourceId).setData(line);
+            }, i * interval);
         }
     }
 
@@ -45,28 +84,20 @@ document.addEventListener("DOMContentLoaded", async function () {
             return;
         }
 
-        // Clear existing markers and routes
-        map.eachLayer((layer) => {
-            if (layer instanceof L.Marker || layer instanceof L.Polyline) {
-                map.removeLayer(layer);
-            }
-        });
+        // Clear existing markers if needed
+        map.getContainer().querySelectorAll(".mapboxgl-marker").forEach(marker => marker.remove());
 
-        // Add markers for origin and destination
-        const originMarker = L.marker([origin.latitude, origin.longitude]).addTo(map)
-            .bindPopup(`<b>Origin:</b> ${origin.name}`).openPopup();
+        // Add origin and destination markers
+        addMarker(map, [origin.longitude, origin.latitude], `<b>Origin:</b> ${origin.name}`);
+        addMarker(map, [destination.longitude, destination.latitude], `<b>Destination:</b> ${destination.name}`);
 
-        const destinationMarker = L.marker([destination.latitude, destination.longitude]).addTo(map)
-            .bindPopup(`<b>Destination:</b> ${destination.name}`).openPopup();
+        // Fly to bounds
+        const bounds = new mapboxgl.LngLatBounds();
+        bounds.extend([origin.longitude, origin.latitude]);
+        bounds.extend([destination.longitude, destination.latitude]);
+        map.fitBounds(bounds, { padding: 50 });
 
-        // Fit map to bounds of the markers
-        const bounds = L.latLngBounds([
-            [origin.latitude, origin.longitude],
-            [destination.latitude, destination.longitude]
-        ]);
-        map.fitBounds(bounds);
-
-        // Animate the route between origin and destination
+        // Animate the route
         animateRoute(map, origin, destination);
     }
 
@@ -115,5 +146,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     document.getElementById("origin-dropdown").addEventListener("input", handleSelectionChange);
     document.getElementById("destination-dropdown").addEventListener("input", handleSelectionChange);
-});
 
+    map.on("load", () => handleSelectionChange());
+});
