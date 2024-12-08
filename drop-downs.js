@@ -1,8 +1,6 @@
 document.addEventListener("DOMContentLoaded", async function () {
     const originDropdown = document.getElementById("origin-dropdown");
     const destinationDropdown = document.getElementById("destination-dropdown");
-    const originCoordinates = document.getElementById("Origin-coordinates");
-    const destinationCoordinates = document.getElementById("Destination-coordinates");
 
     // Fetch and parse airport data
     async function fetchAirportData() {
@@ -25,9 +23,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 airports.push({
                     name: fields[3].replace(/"/g, ""),
                     municipality: fields[10].replace(/"/g, ""),
-                    iata_code: fields[13].replace(/"/g, ""),
-                    latitude: parseFloat(fields[4]),
-                    longitude: parseFloat(fields[5])
+                    iata_code: fields[13].replace(/"/g, "")
                 });
             }
         }
@@ -35,7 +31,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     // Function to attach dropdown to input field
-    function attachDropdown(inputField, airports, coordinatesField) {
+    function attachDropdown(inputField, airports) {
         const dropdownContainer = document.createElement('div');
         dropdownContainer.style.position = 'absolute';
         dropdownContainer.style.zIndex = '1000';
@@ -80,8 +76,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                     option.addEventListener('click', function () {
                         inputField.value = `${airport.name}`;
                         inputField.dataset.iataCode = airport.iata_code;
-                        coordinatesField.value = `${airport.latitude}, ${airport.longitude}`;
-                        console.log(`Selected coordinates: ${airport.latitude}, ${airport.longitude}`);
                         dropdownContainer.style.display = 'none';
                     });
 
@@ -111,23 +105,9 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         });
 
-        // Hide dropdown on blur and ensure the value persists
+        // Hide dropdown on blur
         inputField.addEventListener('blur', function () {
             setTimeout(() => {
-                const firstOption = dropdownContainer.querySelector('.dropdown-option');
-                if (firstOption && inputField.value.trim().length > 0) {
-                    const selectedText = firstOption.textContent;
-                    const [name, iataCode] = selectedText.split(' (');
-                    inputField.value = name.trim();
-                    inputField.dataset.iataCode = iataCode.replace(')', '').trim();
-
-                    // Set coordinates if applicable
-                    const matchedAirport = airports.find(airport => airport.name === name.trim());
-                    if (matchedAirport) {
-                        coordinatesField.value = `${matchedAirport.latitude}, ${matchedAirport.longitude}`;
-                        console.log(`Blur selected coordinates: ${matchedAirport.latitude}, ${matchedAirport.longitude}`);
-                    }
-                }
                 dropdownContainer.style.display = 'none';
             }, 200); // Slight delay to allow selection
         });
@@ -135,7 +115,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         // Event listener for Enter key to select top result
         inputField.addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
-                const firstOption = dropdownContainer.querySelector('.dropdown-option');
+                const firstOption = dropdownContainer.querySelector('div');
                 if (firstOption) {
                     firstOption.click();
                     event.preventDefault(); // Prevent form submission or default behavior
@@ -145,6 +125,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     const airportData = await fetchAirportData();
-    attachDropdown(originDropdown, airportData, originCoordinates);
-    attachDropdown(destinationDropdown, airportData, destinationCoordinates);
+    attachDropdown(originDropdown, airportData);
+    attachDropdown(destinationDropdown, airportData);
 });
