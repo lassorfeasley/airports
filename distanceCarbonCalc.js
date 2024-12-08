@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     const airportData = await fetchAirportData();
 
-    document.getElementById("calculate-button").addEventListener("click", function () {
+    function handleSelectionChange() {
         const originIATA = originDropdown.dataset.iataCode;
         const destinationIATA = destinationDropdown.dataset.iataCode;
         const isRoundTrip = roundTripCheckbox.checked;
@@ -85,7 +85,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         const flightClassMultiplier = parseFloat(Array.from(flightClassRadios).find(radio => radio.checked)?.value);
 
         if (!originIATA || !destinationIATA || isNaN(flightClassMultiplier)) {
-            alert("Please make all selections before calculating.");
+            console.log("Please make all selections to calculate metrics.");
             return;
         }
 
@@ -93,11 +93,16 @@ document.addEventListener("DOMContentLoaded", async function () {
         const destination = airportData.find(airport => airport.iata_code === destinationIATA);
 
         if (!origin || !destination) {
-            alert("Invalid airport selection.");
+            console.log("Invalid airport selection.");
             return;
         }
 
         const metrics = calculateMetrics(origin, destination, isRoundTrip, flightClassMultiplier);
         updateFields(metrics, origin, destination);
-    });
+    }
+
+    originDropdown.addEventListener("change", handleSelectionChange);
+    destinationDropdown.addEventListener("change", handleSelectionChange);
+    roundTripCheckbox.addEventListener("change", handleSelectionChange);
+    flightClassRadios.forEach(radio => radio.addEventListener("change", handleSelectionChange));
 });
