@@ -36,6 +36,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         dropdownContainer.classList.add('custom-dropdown');
         document.body.appendChild(dropdownContainer);
 
+        let currentIndex = -1; // Track the currently selected option
+
         function populateDropdown(inputField, dropdownContainer, airports) {
             dropdownContainer.innerHTML = ''; // Clear existing options
             const searchTerm = inputField.value.toLowerCase();
@@ -53,6 +55,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                     option.classList.add('dropdown-option');
                     if (index === 0) {
                         option.classList.add('selected'); // Add selected class to the first option
+                        currentIndex = 0; // Set the current index to the first option
                     }
                     option.textContent = `${airport.name} (${airport.iata_code})`;
 
@@ -69,6 +72,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 noResult.classList.add('dropdown-option', 'no-result');
                 noResult.textContent = 'No results found';
                 dropdownContainer.appendChild(noResult);
+                currentIndex = -1; // Reset current index if no results
             }
         }
 
@@ -93,13 +97,29 @@ document.addEventListener("DOMContentLoaded", async function () {
             }, 200); // Slight delay to allow selection
         });
 
-        // Event listener for Enter key to select top result
+        // Event listener for keyboard navigation
         inputField.addEventListener('keydown', function (event) {
-            if (event.key === 'Enter') {
-                const firstOption = dropdownContainer.querySelector('.dropdown-option.selected');
-                if (firstOption) {
-                    firstOption.click();
-                    event.preventDefault(); // Prevent form submission or default behavior
+            const options = dropdownContainer.querySelectorAll('.dropdown-option');
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                if (currentIndex < options.length - 1) {
+                    if (currentIndex >= 0) {
+                        options[currentIndex].classList.remove('selected');
+                    }
+                    currentIndex++;
+                    options[currentIndex].classList.add('selected');
+                }
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                if (currentIndex > 0) {
+                    options[currentIndex].classList.remove('selected');
+                    currentIndex--;
+                    options[currentIndex].classList.add('selected');
+                }
+            } else if (event.key === 'Enter') {
+                event.preventDefault();
+                if (currentIndex >= 0 && options[currentIndex]) {
+                    options[currentIndex].click();
                 }
             }
         });
