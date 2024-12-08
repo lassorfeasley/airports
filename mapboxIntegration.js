@@ -37,8 +37,12 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
         // Add new markers
-        originMarker = addMarker(map, [origin.longitude, origin.latitude], `<b>Origin:</b> ${origin.name}`);
-        destinationMarker = addMarker(map, [destination.longitude, destination.latitude], `<b>Destination:</b> ${destination.name}`);
+        if (origin) {
+            originMarker = addMarker(map, [origin.longitude, origin.latitude], `<b>Origin:</b> ${origin.name}`);
+        }
+        if (destination) {
+            destinationMarker = addMarker(map, [destination.longitude, destination.latitude], `<b>Destination:</b> ${destination.name}`);
+        }
     }
 
     async function animateRoute(map, origin, destination) {
@@ -93,6 +97,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     function updateMap(map, origin, destination) {
         if (!origin || !destination) {
+            console.log("Missing origin or destination.");
             return;
         }
 
@@ -143,11 +148,20 @@ document.addEventListener("DOMContentLoaded", async function () {
     const airportData = await fetchAirportData();
 
     function handleSelectionChange() {
-        const originIATA = document.getElementById("origin-dropdown").dataset.iataCode;
-        const destinationIATA = document.getElementById("destination-dropdown").dataset.iataCode;
+        const originDropdown = document.getElementById("origin-dropdown");
+        const destinationDropdown = document.getElementById("destination-dropdown");
+
+        const originIATA = originDropdown.dataset.iataCode;
+        const destinationIATA = destinationDropdown.dataset.iataCode;
+
+        console.log("Origin IATA:", originIATA);
+        console.log("Destination IATA:", destinationIATA);
 
         const origin = originIATA ? airportData.find(airport => airport.iata_code === originIATA) : null;
         const destination = destinationIATA ? airportData.find(airport => airport.iata_code === destinationIATA) : null;
+
+        console.log("Origin:", origin);
+        console.log("Destination:", destination);
 
         updateMap(map, origin, destination);
     }
