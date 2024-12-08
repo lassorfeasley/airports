@@ -56,18 +56,33 @@ document.addEventListener("DOMContentLoaded", async function () {
             ).slice(0, 4); // Limit to top 4 results
 
             if (filteredAirports.length > 0) {
-                filteredAirports.forEach(airport => {
+                filteredAirports.forEach((airport, index) => {
                     const option = document.createElement('div');
                     option.classList.add('dropdown-option');
                     option.style.padding = '8px';
                     option.style.cursor = 'pointer';
                     option.style.borderBottom = '1px solid #ddd';
                     option.textContent = `${airport.name} (${airport.iata_code})`;
+
+                    // Highlight the first option by default
+                    if (index === 0) {
+                        option.style.backgroundColor = '#f0f0f0';
+                    }
+
+                    option.addEventListener('mouseover', function () {
+                        option.style.backgroundColor = '#e0e0e0';
+                    });
+
+                    option.addEventListener('mouseout', function () {
+                        option.style.backgroundColor = index === 0 ? '#f0f0f0' : 'white';
+                    });
+
                     option.addEventListener('click', function () {
                         inputField.value = `${airport.name}`;
                         inputField.dataset.iataCode = airport.iata_code;
                         dropdownContainer.style.display = 'none';
                     });
+
                     dropdownContainer.appendChild(option);
                 });
             } else {
