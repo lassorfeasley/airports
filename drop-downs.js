@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const originDropdown = document.getElementById("origin-dropdown");
     const destinationDropdown = document.getElementById("destination-dropdown");
 
+    // Fetch and parse airport data
     async function fetchAirportData() {
         try {
             const response = await fetch("https://davidmegginson.github.io/ourairports-data/airports.csv");
@@ -29,17 +30,17 @@ document.addEventListener("DOMContentLoaded", async function () {
         return airports;
     }
 
+    // Function to attach dropdown to input field
     function attachDropdown(inputField, airports) {
         const dropdownContainer = document.createElement('div');
         dropdownContainer.classList.add('custom-dropdown');
         document.body.appendChild(dropdownContainer);
 
-        let currentIndex = -1; // Track the currently selected option
-
         function populateDropdown(inputField, dropdownContainer, airports) {
             dropdownContainer.innerHTML = ''; // Clear existing options
             const searchTerm = inputField.value.toLowerCase();
 
+            // Filter airports based on input
             const filteredAirports = airports.filter(airport =>
                 airport.name.toLowerCase().includes(searchTerm) ||
                 airport.municipality.toLowerCase().includes(searchTerm) ||
@@ -63,7 +64,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
                     dropdownContainer.appendChild(option);
                 });
-                dropdownContainer.style.display = 'block'; // Ensure dropdown is visible
+                dropdownContainer.style.display = 'block'; // Show dropdown
             } else {
                 const noResult = document.createElement('div');
                 noResult.classList.add('dropdown-option', 'no-result');
@@ -73,6 +74,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         }
 
+        // Event listener to update dropdown on input
         inputField.addEventListener('input', function () {
             if (inputField.value.trim().length > 0) {
                 const rect = inputField.getBoundingClientRect();
@@ -85,36 +87,20 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         });
 
+        // Hide dropdown on blur
         inputField.addEventListener('blur', function () {
             setTimeout(() => {
                 dropdownContainer.style.display = 'none';
-            }, 200);
+            }, 200); // Slight delay to allow selection
         });
 
+        // Event listener for Enter key to select top result
         inputField.addEventListener('keydown', function (event) {
-            const options = dropdownContainer.querySelectorAll('.dropdown-option');
-            if (event.key === 'ArrowDown') {
-                event.preventDefault();
-                if (currentIndex < options.length - 1) {
-                    if (currentIndex >= 0) {
-                        options[currentIndex].classList.remove('selected');
-                    }
-                    currentIndex++;
-                    options[currentIndex].classList.add('selected');
-                    options[currentIndex].scrollIntoView({ block: "nearest" });
-                }
-            } else if (event.key === 'ArrowUp') {
-                event.preventDefault();
-                if (currentIndex > 0) {
-                    options[currentIndex].classList.remove('selected');
-                    currentIndex--;
-                    options[currentIndex].classList.add('selected');
-                    options[currentIndex].scrollIntoView({ block: "nearest" });
-                }
-            } else if (event.key === 'Enter') {
-                event.preventDefault();
-                if (currentIndex >= 0 && options[currentIndex]) {
-                    options[currentIndex].click();
+            if (event.key === 'Enter') {
+                const firstOption = dropdownContainer.querySelector('.dropdown-option');
+                if (firstOption) {
+                    firstOption.click();
+                    event.preventDefault(); // Prevent form submission or default behavior
                 }
             }
         });
