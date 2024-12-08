@@ -81,6 +81,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                         inputField.value = `${airport.name}`;
                         inputField.dataset.iataCode = airport.iata_code;
                         coordinatesField.value = `${airport.latitude}, ${airport.longitude}`;
+                        console.log(`Selected coordinates: ${airport.latitude}, ${airport.longitude}`);
                         dropdownContainer.style.display = 'none';
                     });
 
