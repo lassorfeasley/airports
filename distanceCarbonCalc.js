@@ -96,16 +96,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         const origin = originIATA ? airportData.find(airport => airport.iata_code === originIATA) : null;
         const destination = destinationIATA ? airportData.find(airport => airport.iata_code === destinationIATA) : null;
 
-        if (origin && destination) {
-            const metrics = calculateMetrics(origin, destination, isRoundTrip, flightClassMultiplier);
-            updateFields(metrics, origin, destination);
-        } else if (origin) {
-            updateFields(null, origin, null);
-        } else if (destination) {
-            updateFields(null, null, destination);
-        } else {
-            console.log("Waiting for both airport selections.");
-        }
+        const metrics = origin && destination ? calculateMetrics(origin, destination, isRoundTrip, flightClassMultiplier) : null;
+        updateFields(metrics, origin, destination);
     }
 
     originDropdown.addEventListener("input", handleSelectionChange);
