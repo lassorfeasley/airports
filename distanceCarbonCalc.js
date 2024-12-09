@@ -100,7 +100,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             originMarker = new mapboxgl.Marker({ color: 'blue' })
                 .setLngLat([origin.longitude, origin.latitude])
                 .addTo(map);
-            map.flyTo({ center: [origin.longitude, origin.latitude], zoom: 4, essential: true });
         }
 
         if (destination) {
@@ -112,7 +111,13 @@ document.addEventListener("DOMContentLoaded", async function () {
             if (origin) {
                 const midLongitude = (origin.longitude + destination.longitude) / 2;
                 const midLatitude = (origin.latitude + destination.latitude) / 2;
+
                 map.flyTo({ center: [midLongitude, midLatitude], zoom: 4, essential: true });
+
+                if (map.getSource('flight-path')) {
+                    map.removeLayer('flight-path');
+                    map.removeSource('flight-path');
+                }
 
                 map.addSource('flight-path', {
                     type: 'geojson',
@@ -128,9 +133,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                     }
                 });
 
-                if (map.getLayer('flight-path')) {
-                    map.removeLayer('flight-path');
-                }
                 map.addLayer({
                     id: 'flight-path',
                     type: 'line',
@@ -149,6 +151,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         let rotation = 0;
         rotateAnimation = setInterval(() => {
             rotation += 0.1;
+            map.setPitch(0); // Ensure globe stays level
             map.setBearing(rotation % 360);
         }, 100);
     }
