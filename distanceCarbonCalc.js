@@ -97,17 +97,20 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     function animateLine(lineCoordinates) {
         let index = 0;
+        const totalSteps = 300; // Number of steps for animation (3 seconds at 60fps)
+        const interval = lineCoordinates.length / totalSteps;
 
         function animate() {
             if (map.getSource('flight-path')) {
+                const currentCoordinates = lineCoordinates.slice(0, Math.ceil(index));
                 map.getSource('flight-path').setData({
                     type: 'Feature',
                     geometry: {
                         type: 'LineString',
-                        coordinates: lineCoordinates.slice(0, index + 1)
+                        coordinates: currentCoordinates
                     }
                 });
-                index++;
+                index += interval;
 
                 if (index < lineCoordinates.length) {
                     animationId = requestAnimationFrame(animate);
@@ -121,14 +124,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     function updateMap(origin, destination) {
         if (origin) {
             if (originMarker) originMarker.remove();
-            originMarker = new mapboxgl.Marker({ color: 'blue' })
+            originMarker = new mapboxgl.Marker({ color: '#0F4C81' })
                 .setLngLat([origin.longitude, origin.latitude])
                 .addTo(map);
         }
 
         if (destination) {
             if (destinationMarker) destinationMarker.remove();
-            destinationMarker = new mapboxgl.Marker({ color: 'red' })
+            destinationMarker = new mapboxgl.Marker({ color: '#0F4C81' })
                 .setLngLat([destination.longitude, destination.latitude])
                 .addTo(map);
         }
@@ -161,8 +164,9 @@ document.addEventListener("DOMContentLoaded", async function () {
                 source: 'flight-path',
                 layout: {},
                 paint: {
-                    'line-color': '#ff5500',
-                    'line-width': 2
+                    'line-color': '#ffffff',
+                    'line-width': 2,
+                    'line-dasharray': [2, 4] // Dashed line
                 }
             });
 
