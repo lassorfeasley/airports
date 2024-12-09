@@ -19,13 +19,13 @@ document.addEventListener("DOMContentLoaded", async function () {
         container: 'map',
         style: 'mapbox://styles/lassor-feasley/cloonclal00bj01ns6c7q6aay',
         center: [0, 0],
-        zoom: 2,
-        projection: 'globe'
+        zoom: 4, // Fixed zoom level
     });
 
-    map.on('style.load', () => {
-        map.setFog({});
-    });
+    // Disable zoom interaction
+    map.scrollZoom.disable();
+    map.doubleClickZoom.disable();
+    map.touchZoomRotate.disable();
 
     async function fetchAirportData() {
         try {
