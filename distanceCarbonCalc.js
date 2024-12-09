@@ -29,9 +29,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     map.doubleClickZoom.disable();
     map.touchZoomRotate.disable();
 
-    map.on('mousedown', stopRotation); // Stop rotation when the user interacts with the map
-    map.on('touchstart', stopRotation);
-
     async function fetchAirportData() {
         try {
             const response = await fetch("https://davidmegginson.github.io/ourairports-data/airports.csv");
@@ -187,11 +184,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     function startRotation() {
-        let rotationLng = 0;
+        let bearing = 0;
         rotationInterval = setInterval(() => {
-            rotationLng = (rotationLng + 0.1) % 360; // Rotate by 0.1 degrees per tick
-            map.easeTo({ center: [rotationLng, 0], bearing: 0, pitch: 0, duration: 100 }); // Smooth rotation around the equator
-        }, 100); // Update every 100ms
+            bearing = (bearing + 0.1) % 360; // Rotate by 0.1 degrees per tick
+            map.setBearing(bearing);
+        }, 100); // Update every 100ms (1 rotation per minute)
     }
 
     function stopRotation() {
@@ -218,12 +215,11 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         if (origin || destination) {
             stopRotation(); // Stop rotating once a selection is made
+        } else {
+            startRotation(); // Restart rotation if no selection is made
         }
 
         updateMap(origin, destination);
-        if (flyToCenter) {
-            map.flyTo({ center: flyToCenter, zoom: 2, essential: true, duration: 2000 }); // Smooth transition to the selected area
-        }
     }
 
     function attachDropdown(inputField, airports) {
