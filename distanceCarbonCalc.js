@@ -285,5 +285,16 @@ document.addEventListener("DOMContentLoaded", async function () {
     roundTripCheckbox.addEventListener("change", handleSelectionChange);
     flightClassRadios.forEach(radio => radio.addEventListener("change", handleSelectionChange));
 
+    const goToAppButton = document.getElementById("goToApp");
+    goToAppButton.addEventListener("click", function () {
+        const panelsNeeded = parseInt(panelsToOffsetField.textContent, 10);
+        if (!isNaN(panelsNeeded) && panelsNeeded > 0) {
+            const appUrl = `https://app.renewables.org/?quantity=${panelsNeeded}`;
+            window.location.href = appUrl;
+        } else {
+            alert("Please calculate the required panels first.");
+        }
+    });
+
     handleSelectionChange();
 });
