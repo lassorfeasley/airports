@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 source: 'flight-path',
                 layout: {},
                 paint: {
-                    'line-color': 'white',
+                    'line-color': '#30A462',
                     'line-width': 4
                 }
             });
@@ -148,7 +148,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             let progress = 0;
             function animateLine() {
                 progress += 0.01; // Adjust speed as needed
-                if (progress > 1) progress = 0;
+                if (progress > 1) return; // Stop animation after one full draw
 
                 const coordinates = [
                     [origin.longitude, origin.latitude],
