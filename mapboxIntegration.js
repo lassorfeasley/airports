@@ -165,28 +165,26 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-    function handleSelectionChange() {
-        const originDropdown = document.getElementById("origin-dropdown");
-        const destinationDropdown = document.getElementById("destination-dropdown");
+function handleSelectionChange() {
+    const originDropdown = document.getElementById("origin-dropdown");
+    const destinationDropdown = document.getElementById("destination-dropdown");
 
-        const origin = originDropdown.value.trim()
-            ? airportData.find(airport => airport.name.toLowerCase() === originDropdown.value.toLowerCase())
-            : null;
+    const origin = originDropdown.value.trim()
+        ? airportData.find(airport => airport.name.toLowerCase() === originDropdown.value.toLowerCase())
+        : null;
 
-        const destination = destinationDropdown.value.trim()
-            ? airportData.find(airport => airport.name.toLowerCase() === destinationDropdown.value.toLowerCase())
-            : null;
+    const destination = destinationDropdown.value.trim()
+        ? airportData.find(airport => airport.name.toLowerCase() === destinationDropdown.value.toLowerCase())
+        : null;
 
-        console.log("Origin Dropdown Value:", originDropdown.value);
-        console.log("Destination Dropdown Value:", destinationDropdown.value);
-        console.log("Matched Origin:", origin);
-        console.log("Matched Destination:", destination);
+    console.log("Origin:", origin, "Destination:", destination);
 
-        updateDataset(originDropdown, origin);
-        updateDataset(destinationDropdown, destination);
+    updateDataset(originDropdown, origin);
+    updateDataset(destinationDropdown, destination);
 
-        updateMap(map, origin, destination);
-    }
+    updateMap(map, origin, destination);
+}
+
 
     document.getElementById("origin-dropdown").addEventListener("input", handleSelectionChange);
     document.getElementById("destination-dropdown").addEventListener("input", handleSelectionChange);
