@@ -153,7 +153,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         if (flyToCenter && (!lastFlyToCenter || flyToCenter[0] !== lastFlyToCenter[0] || flyToCenter[1] !== lastFlyToCenter[1])) {
             lastFlyToCenter = flyToCenter;
-            map.flyTo({ center: flyToCenter, zoom: 4, essential: true });
+            map.jumpTo({ center: flyToCenter, zoom: 4 }); // Use jumpTo to avoid animation conflicts
         }
     }
 
@@ -167,7 +167,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     function stopGlobeRotation() {
-        if (rotateAnimation) clearInterval(rotateAnimation);
+        if (rotateAnimation) {
+            clearInterval(rotateAnimation);
+            rotateAnimation = null;
+        }
     }
 
     const airportData = await fetchAirportData();
