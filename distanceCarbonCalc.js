@@ -120,41 +120,33 @@ document.addEventListener("DOMContentLoaded", async function () {
                 map.removeSource('flight-path');
             }
 
-            map.addSource('flight-path', {
-                type: 'geojson',
-                data: {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'LineString',
-                        coordinates: [
-                            [origin.longitude, origin.latitude],
-                            [destination.longitude, destination.latitude]
-                        ]
-                    }
-                }
-            });
+            map.addLayer(
+                new MapboxGLAntPath({
+                    id: 'flight-path',
+                    source: {
+                        type: 'geojson',
+                        data: {
+                            type: 'Feature',
+                            geometry: {
+                                type: 'LineString',
+                                coordinates: [
+                                    [origin.longitude, origin.latitude],
+                                    [destination.longitude, destination.latitude]
+                                ]
+                            }
+                        }
+                    },
+                    paint: {
+                        'line-color': '#0F4C81',
+                        'line-width': 4,
+                    },
+                    antPath: {
+                        dashArray: [0.5, 2], // Custom dash pattern
+                        animationSpeed: 2,  // Speed of animation
+                    },
+                })
+            );
 
-            map.addLayer({
-                id: 'flight-path',
-                type: 'line',
-                source: 'flight-path',
-                layout: {},
-                paint: {
-                    'line-color': 'white',
-                    'line-width': 4,
-                    'line-dasharray': [0, 2]
-                }
-            });
-
-            let dashOffset = 0;
-            function animateDashArray() {
-                dashOffset = (dashOffset + 0.1) % 2;
-                map.setPaintProperty('flight-path', 'line-dasharray', [dashOffset, 2]);
-
-                requestAnimationFrame(animateDashArray);
-            }
-
-            animateDashArray();
         } else if (origin) {
             flyToCenter = [origin.longitude, origin.latitude];
         } else if (destination) {
