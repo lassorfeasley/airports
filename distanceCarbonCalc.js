@@ -11,7 +11,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     const panelsToOffsetField = document.getElementById("panels-to-offset");
 
     let originMarker, destinationMarker;
-    let rotateAnimation;
     let lastFlyToCenter = null;
 
     mapboxgl.accessToken = 'pk.eyJ1IjoibGFzc29yLWZlYXNsZXkiLCJhIjoiY2xocTdpenBxMW1vcDNqbnUwaXZ3YjZvdSJ9.yAmcJgAq3-ts7qthbc4njg';
@@ -153,23 +152,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         if (flyToCenter && (!lastFlyToCenter || flyToCenter[0] !== lastFlyToCenter[0] || flyToCenter[1] !== lastFlyToCenter[1])) {
             lastFlyToCenter = flyToCenter;
-            map.jumpTo({ center: flyToCenter, zoom: 4 }); // Use jumpTo to avoid animation conflicts
-        }
-    }
-
-    function startGlobeRotation() {
-        let rotation = 0;
-        rotateAnimation = setInterval(() => {
-            rotation += 0.1;
-            map.setPitch(0); // Ensure globe stays level
-            map.setBearing(rotation % 360);
-        }, 100);
-    }
-
-    function stopGlobeRotation() {
-        if (rotateAnimation) {
-            clearInterval(rotateAnimation);
-            rotateAnimation = null;
+            map.jumpTo({ center: flyToCenter, zoom: 4 });
         }
     }
 
@@ -188,12 +171,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         const metrics = origin && destination ? calculateMetrics(origin, destination, isRoundTrip, flightClassMultiplier) : null;
         updateFields(metrics, origin, destination);
         updateMap(origin, destination);
-
-        if (!origin && !destination) {
-            startGlobeRotation();
-        } else {
-            stopGlobeRotation();
-        }
     }
 
     function attachDropdown(inputField, airports) {
