@@ -120,33 +120,56 @@ document.addEventListener("DOMContentLoaded", async function () {
                 map.removeSource('flight-path');
             }
 
-            map.addLayer(
-                new MapboxGLAntPath({
-                    id: 'flight-path',
-                    source: {
-                        type: 'geojson',
-                        data: {
-                            type: 'Feature',
-                            geometry: {
-                                type: 'LineString',
-                                coordinates: [
-                                    [origin.longitude, origin.latitude],
-                                    [destination.longitude, destination.latitude]
-                                ]
-                            }
-                        }
-                    },
-                    paint: {
-                        'line-color': '#0F4C81',
-                        'line-width': 4,
-                    },
-                    antPath: {
-                        dashArray: [0.5, 2], // Custom dash pattern
-                        animationSpeed: 2,  // Speed of animation
-                    },
-                })
-            );
+            map.addSource('flight-path', {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'LineString',
+                        coordinates: [
+                            [origin.longitude, origin.latitude],
+                            [destination.longitude, destination.latitude]
+                        ]
+                    }
+                }
+            });
 
+            map.addLayer({
+                id: 'flight-path',
+                type: 'line',
+                source: 'flight-path',
+                layout: {},
+                paint: {
+                    'line-color': 'white',
+                    'line-width': 4
+                }
+            });
+
+            let progress = 0;
+            function animateLine() {
+                progress += 0.01; // Adjust speed as needed
+                if (progress > 1) progress = 0;
+
+                const coordinates = [
+                    [origin.longitude, origin.latitude],
+                    [
+                        origin.longitude + (destination.longitude - origin.longitude) * progress,
+                        origin.latitude + (destination.latitude - origin.latitude) * progress
+                    ]
+                ];
+
+                map.getSource('flight-path').setData({
+                    type: 'Feature',
+                    geometry: {
+                        type: 'LineString',
+                        coordinates: coordinates
+                    }
+                });
+
+                requestAnimationFrame(animateLine);
+            }
+
+            animateLine();
         } else if (origin) {
             flyToCenter = [origin.longitude, origin.latitude];
         } else if (destination) {
