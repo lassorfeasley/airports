@@ -99,20 +99,21 @@ document.addEventListener("DOMContentLoaded", async function () {
         let index = 0;
         const totalSteps = 300; // Number of steps for animation (3 seconds at 60fps)
         const interval = lineCoordinates.length / totalSteps;
+        const animatedCoordinates = [];
 
         function animate() {
             if (map.getSource('flight-path')) {
-                const currentCoordinates = lineCoordinates.slice(0, Math.ceil(index));
+                index += interval;
+                animatedCoordinates.push(lineCoordinates[Math.min(Math.floor(index), lineCoordinates.length - 1)]);
                 map.getSource('flight-path').setData({
                     type: 'Feature',
                     geometry: {
                         type: 'LineString',
-                        coordinates: currentCoordinates
+                        coordinates: animatedCoordinates
                     }
                 });
-                index += interval;
 
-                if (index < lineCoordinates.length) {
+                if (index < lineCoordinates.length - 1) {
                     animationId = requestAnimationFrame(animate);
                 }
             }
@@ -164,7 +165,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 source: 'flight-path',
                 layout: {},
                 paint: {
-                    'line-color': '#ffffff',
+                    'line-color': '#0F4C81',
                     'line-width': 2,
                     'line-dasharray': [2, 4] // Dashed line
                 }
