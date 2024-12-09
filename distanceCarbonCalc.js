@@ -152,7 +152,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         if (flyToCenter && (!lastFlyToCenter || flyToCenter[0] !== lastFlyToCenter[0] || flyToCenter[1] !== lastFlyToCenter[1])) {
             lastFlyToCenter = flyToCenter;
-            map.jumpTo({ center: flyToCenter, zoom: 4 });
+            map.flyTo({ center: flyToCenter, zoom: 4, essential: true, speed: 1.2, curve: 1.5 }); // Smooth animation
         }
     }
 
