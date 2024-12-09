@@ -146,16 +146,15 @@ document.addEventListener("DOMContentLoaded", async function () {
                 }
             });
 
-            function animateDashArray(timestamp) {
-                const dashArray = map.getPaintProperty('flight-path', 'line-dasharray');
-                dashArray[0] = (dashArray[0] + 0.1) % 2;
-                dashArray[1] = (dashArray[1] + 0.1) % 2;
-                map.setPaintProperty('flight-path', 'line-dasharray', dashArray);
+            let dashOffset = 0;
+            function animateDashArray() {
+                dashOffset = (dashOffset + 0.1) % 2;
+                map.setPaintProperty('flight-path', 'line-dasharray', [dashOffset, 2]);
 
                 requestAnimationFrame(animateDashArray);
             }
 
-            animateDashArray(0);
+            animateDashArray();
         } else if (origin) {
             flyToCenter = [origin.longitude, origin.latitude];
         } else if (destination) {
