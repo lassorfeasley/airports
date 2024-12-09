@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                     }
                 });
 
-                if (index < lineCoordinates.length - 1) {
+                if (index < totalSteps) {
                     animationId = requestAnimationFrame(animate);
                 }
             }
