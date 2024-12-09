@@ -147,18 +147,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-    function startGlobeRotation() {
-        let rotation = 0;
-        rotateAnimation = setInterval(() => {
-            rotation += 0.1;
-            map.setPitch(0); // Ensure globe stays level
-            map.setBearing(rotation % 360);
-        }, 100);
-    }
-
-    function stopGlobeRotation() {
-        if (rotateAnimation) clearInterval(rotateAnimation);
-    }
 
     const airportData = await fetchAirportData();
 
