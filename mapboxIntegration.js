@@ -170,12 +170,17 @@ document.addEventListener("DOMContentLoaded", async function () {
         const destinationDropdown = document.getElementById("destination-dropdown");
 
         const origin = originDropdown.value.trim()
-            ? airportData.find(airport => airport.name.toLowerCase().includes(originDropdown.value.toLowerCase()))
+            ? airportData.find(airport => airport.name.toLowerCase() === originDropdown.value.toLowerCase())
             : null;
 
         const destination = destinationDropdown.value.trim()
-            ? airportData.find(airport => airport.name.toLowerCase().includes(destinationDropdown.value.toLowerCase()))
+            ? airportData.find(airport => airport.name.toLowerCase() === destinationDropdown.value.toLowerCase())
             : null;
+
+        console.log("Origin Dropdown Value:", originDropdown.value);
+        console.log("Destination Dropdown Value:", destinationDropdown.value);
+        console.log("Matched Origin:", origin);
+        console.log("Matched Destination:", destination);
 
         updateDataset(originDropdown, origin);
         updateDataset(destinationDropdown, destination);
