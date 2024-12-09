@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     let originMarker, destinationMarker;
     let lastFlyToCenter = null;
     let animationId = null;
-    let rotationInterval = null;
 
     mapboxgl.accessToken = 'pk.eyJ1IjoibGFzc29yLWZlYXNsZXkiLCJhIjoiY2xocTdpenBxMW1vcDNqbnUwaXZ3YjZvdSJ9.yAmcJgAq3-ts7qthbc4njg';
 
@@ -183,21 +182,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-    function startRotation() {
-        let bearing = 0;
-        rotationInterval = setInterval(() => {
-            bearing = (bearing + 0.1) % 360; // Rotate by 0.1 degrees per tick
-            map.setBearing(bearing);
-        }, 100); // Update every 100ms (1 rotation per minute)
-    }
-
-    function stopRotation() {
-        if (rotationInterval) {
-            clearInterval(rotationInterval);
-            rotationInterval = null;
-        }
-    }
-
     const airportData = await fetchAirportData();
 
     function handleSelectionChange() {
@@ -212,13 +196,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const metrics = origin && destination ? calculateMetrics(origin, destination, isRoundTrip, flightClassMultiplier) : null;
         updateFields(metrics, origin, destination);
-
-        if (origin || destination) {
-            stopRotation(); // Stop rotating once a selection is made
-        } else {
-            startRotation(); // Restart rotation if no selection is made
-        }
-
         updateMap(origin, destination);
     }
 
@@ -307,8 +284,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     destinationDropdown.addEventListener("input", handleSelectionChange);
     roundTripCheckbox.addEventListener("change", handleSelectionChange);
     flightClassRadios.forEach(radio => radio.addEventListener("change", handleSelectionChange));
-
-    startRotation(); // Start rotation when the page loads
 
     handleSelectionChange();
 });
