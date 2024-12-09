@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     let originMarker, destinationMarker;
     let lastFlyToCenter = null;
+    let animationId = null;
 
     mapboxgl.accessToken = 'pk.eyJ1IjoibGFzc29yLWZlYXNsZXkiLCJhIjoiY2xocTdpenBxMW1vcDNqbnUwaXZ3YjZvdSJ9.yAmcJgAq3-ts7qthbc4njg';
 
@@ -94,6 +95,29 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
+    function animateLine(lineCoordinates) {
+        let index = 0;
+
+        function animate() {
+            if (map.getSource('flight-path')) {
+                map.getSource('flight-path').setData({
+                    type: 'Feature',
+                    geometry: {
+                        type: 'LineString',
+                        coordinates: lineCoordinates.slice(0, index + 1)
+                    }
+                });
+                index++;
+
+                if (index < lineCoordinates.length) {
+                    animationId = requestAnimationFrame(animate);
+                }
+            }
+        }
+
+        animate();
+    }
+
     function updateMap(origin, destination) {
         if (origin) {
             if (originMarker) originMarker.remove();
@@ -126,10 +150,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                     type: 'Feature',
                     geometry: {
                         type: 'LineString',
-                        coordinates: [
-                            [origin.longitude, origin.latitude],
-                            [destination.longitude, destination.latitude]
-                        ]
+                        coordinates: [] // Start with an empty line
                     }
                 }
             });
@@ -144,6 +165,11 @@ document.addEventListener("DOMContentLoaded", async function () {
                     'line-width': 2
                 }
             });
+
+            animateLine([
+                [origin.longitude, origin.latitude],
+                [destination.longitude, destination.latitude]
+            ]);
         } else if (origin) {
             flyToCenter = [origin.longitude, origin.latitude];
         } else if (destination) {
