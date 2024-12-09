@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     let originMarker, destinationMarker;
     let lastFlyToCenter = null;
-    let animationId = null;
 
     mapboxgl.accessToken = 'pk.eyJ1IjoibGFzc29yLWZlYXNsZXkiLCJhIjoiY2xocTdpenBxMW1vcDNqbnUwaXZ3YjZvdSJ9.yAmcJgAq3-ts7qthbc4njg';
 
@@ -95,33 +94,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-    function animateLine(lineCoordinates) {
-        let index = 0;
-        const totalSteps = 300; // Number of steps for animation (3 seconds at 60fps)
-        const interval = lineCoordinates.length / totalSteps;
-        const animatedCoordinates = [];
-
-        function animate() {
-            if (map.getSource('flight-path')) {
-                index += interval;
-                animatedCoordinates.push(lineCoordinates[Math.min(Math.floor(index), lineCoordinates.length - 1)]);
-                map.getSource('flight-path').setData({
-                    type: 'Feature',
-                    geometry: {
-                        type: 'LineString',
-                        coordinates: animatedCoordinates
-                    }
-                });
-
-                if (index < totalSteps) {
-                    animationId = requestAnimationFrame(animate);
-                }
-            }
-        }
-
-        animate();
-    }
-
     function updateMap(origin, destination) {
         if (origin) {
             if (originMarker) originMarker.remove();
@@ -154,7 +126,10 @@ document.addEventListener("DOMContentLoaded", async function () {
                     type: 'Feature',
                     geometry: {
                         type: 'LineString',
-                        coordinates: [] // Start with an empty line
+                        coordinates: [
+                            [origin.longitude, origin.latitude],
+                            [destination.longitude, destination.latitude]
+                        ]
                     }
                 }
             });
@@ -165,16 +140,22 @@ document.addEventListener("DOMContentLoaded", async function () {
                 source: 'flight-path',
                 layout: {},
                 paint: {
-                    'line-color': '#0F4C81',
-                    'line-width': 2,
-                    'line-dasharray': [2, 4] // Dashed line
+                    'line-color': 'white',
+                    'line-width': 4,
+                    'line-dasharray': [0, 2]
                 }
             });
 
-            animateLine([
-                [origin.longitude, origin.latitude],
-                [destination.longitude, destination.latitude]
-            ]);
+            function animateDashArray(timestamp) {
+                const dashArray = map.getPaintProperty('flight-path', 'line-dasharray');
+                dashArray[0] = (dashArray[0] + 0.1) % 2;
+                dashArray[1] = (dashArray[1] + 0.1) % 2;
+                map.setPaintProperty('flight-path', 'line-dasharray', dashArray);
+
+                requestAnimationFrame(animateDashArray);
+            }
+
+            animateDashArray(0);
         } else if (origin) {
             flyToCenter = [origin.longitude, origin.latitude];
         } else if (destination) {
