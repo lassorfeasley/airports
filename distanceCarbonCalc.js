@@ -184,11 +184,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     function startRotation() {
-        let bearing = 0;
+        let rotationLng = 0;
         rotationInterval = setInterval(() => {
-            bearing = (bearing + 0.1) % 360; // Rotate by 0.1 degrees per tick
-            map.setBearing(bearing);
-        }, 100); // Update every 100ms (1 rotation per minute)
+            rotationLng = (rotationLng + 0.1) % 360; // Rotate by 0.1 degrees per tick
+            map.easeTo({ center: [rotationLng, 0], bearing: 0, pitch: 0, duration: 100 }); // Smooth rotation around the equator
+        }, 100); // Update every 100ms
     }
 
     function stopRotation() {
@@ -220,6 +220,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
         updateMap(origin, destination);
+        map.flyTo({ center: flyToCenter, zoom: 2, essential: true }); // Smooth transition to the selected area
     }
 
     function attachDropdown(inputField, airports) {
