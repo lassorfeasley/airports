@@ -88,9 +88,16 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
         if (metrics) {
-            totalMilesField.textContent = metrics.totalDistance.toFixed(2);
-            carbonCostField.textContent = metrics.carbonCost.toFixed(2);
+            totalMilesField.textContent = `${metrics.totalDistance.toFixed(2)} km`; // Add units
+            carbonCostField.textContent = `${metrics.carbonCost.toFixed(2)} kg CO₂`; // Add units
             panelsToOffsetField.textContent = metrics.panelsNeeded;
+
+            // Calculate and display the total cost
+            const totalCost = metrics.panelsNeeded * 25;
+            const totalCostField = document.getElementById('total-cost');
+            if (totalCostField) {
+                totalCostField.textContent = `$${totalCost}`;
+            }
         }
     }
 
