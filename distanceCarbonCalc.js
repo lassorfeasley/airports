@@ -68,16 +68,17 @@ document.addEventListener("DOMContentLoaded", async function () {
         return R * c;
     }
 
-    function calculateMetrics(origin, destination, isRoundTrip, flightClassCarbonCost) {
-        const distance = haversineDistance(origin.latitude, origin.longitude, destination.latitude, destination.longitude);
-        const roundTripMultiplier = isRoundTrip ? 2 : 1;
-        const totalDistance = distance * roundTripMultiplier;
+function calculateMetrics(origin, destination, isRoundTrip, flightClassCarbonCost) {
+    const distance = haversineDistance(origin.latitude, origin.longitude, destination.latitude, destination.longitude);
+    const roundTripMultiplier = isRoundTrip ? 2 : 1;
+    const totalDistance = distance * roundTripMultiplier;
 
-        const carbonCost = totalDistance * flightClassCarbonCost;
-        const panelsNeeded = Math.ceil(carbonCost * 0.01);
+    const carbonCost = totalDistance * flightClassCarbonCost;
+    const panelsNeeded = Math.ceil(carbonCost / 530); // Each panel offsets 530 lbs of CO₂
 
-        return { totalDistance, carbonCost, panelsNeeded };
-    }
+    return { totalDistance, carbonCost, panelsNeeded };
+}
+
 
     function updateFields(metrics, origin, destination) {
         if (origin) {
