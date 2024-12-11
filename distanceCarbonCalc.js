@@ -74,9 +74,136 @@ document.addEventListener("DOMContentLoaded", async function () {
         const totalDistance = distance * roundTripMultiplier;
 
         const carbonCost = totalDistance * flightClassCarbonCost;
-        const panelsNeeded = Math.ceil(carbonCost / 530); // Corrected calculation
+        const panelsNeeded = Math.ceil(carbonCost * 0.01);
 
         return { totalDistance, carbonCost, panelsNeeded };
+    }
+
+    function updateFields(metrics, origin, destination) {
+        if (origin) {
+            originCoordinatesField.textContent = `${origin.latitude}, ${origin.longitude}`;
+        }
+        if (destination) {
+            destinationCoordinatesField.textContent = `${destination.latitude}, ${destination.longitude}`;
+        }
+
+        if (metrics) {
+            totalMilesField.textContent = `${metrics.totalDistance.toFixed(2)} miles`; // Add units
+            carbonCostField.textContent = `${metrics.carbonCost.toFixed(2)} lbs CO₂`; // Add units
+            panelsToOffsetField.textContent = metrics.panelsNeeded;
+
+            // Calculate and display the total cost
+            const totalCost = metrics.panelsNeeded * 25;
+            const totalCostField = document.getElementById('total-cost');
+            if (totalCostField) {
+                totalCostField.textContent = `$${totalCost}`;
+            }
+        }
+    }
+
+    function updateMap(origin, destination) {
+        if (origin) {
+            if (originMarker) originMarker.remove();
+            originMarker = new mapboxgl.Marker({ color: '#0F4C81' })
+                .setLngLat([origin.longitude, origin.latitude])
+                .addTo(map);
+        }
+
+        if (destination) {
+            if (destinationMarker) destinationMarker.remove();
+            destinationMarker = new mapboxgl.Marker({ color: '#0F4C81' })
+                .setLngLat([destination.longitude, destination.latitude])
+                .addTo(map);
+        }
+
+        let flyToCenter = null;
+        if (origin && destination) {
+            const midLongitude = (origin.longitude + destination.longitude) / 2;
+            const midLatitude = (origin.latitude + destination.latitude) / 2;
+            flyToCenter = [midLongitude, midLatitude];
+
+            if (map.getSource('flight-path')) {
+                map.removeLayer('flight-path');
+                map.removeSource('flight-path');
+            }
+
+            map.addSource('flight-path', {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'LineString',
+                        coordinates: [
+                            [origin.longitude, origin.latitude],
+                            [destination.longitude, destination.latitude]
+                        ]
+                    }
+                }
+            });
+
+            map.addLayer({
+                id: 'flight-path',
+                type: 'line',
+                source: 'flight-path',
+                layout: {},
+                paint: {
+                    'line-color': '#30A462',
+                    'line-width': 4
+                }
+            });
+
+            let progress = 0;
+            function animateLine() {
+                progress += 0.01; // Adjust speed as needed
+                if (progress > 1) return; // Stop animation after one full draw
+
+                const coordinates = [
+                    [origin.longitude, origin.latitude],
+                    [
+                        origin.longitude + (destination.longitude - origin.longitude) * progress,
+                        origin.latitude + (destination.latitude - origin.latitude) * progress
+                    ]
+                ];
+
+                map.getSource('flight-path').setData({
+                    type: 'Feature',
+                    geometry: {
+                        type: 'LineString',
+                        coordinates: coordinates
+                    }
+                });
+
+                requestAnimationFrame(animateLine);
+            }
+
+            animateLine();
+        } else if (origin) {
+            flyToCenter = [origin.longitude, origin.latitude];
+        } else if (destination) {
+            flyToCenter = [destination.longitude, destination.latitude];
+        }
+
+        if (flyToCenter && (!lastFlyToCenter || flyToCenter[0] !== lastFlyToCenter[0] || flyToCenter[1] !== lastFlyToCenter[1])) {
+            lastFlyToCenter = flyToCenter;
+            map.easeTo({ center: flyToCenter, zoom: 2, essential: true }); // Smooth easing animation
+        }
+    }
+
+    const airportData = await fetchAirportData();
+
+    function handleSelectionChange() {
+        const originIATA = originDropdown.dataset.iataCode;
+        const destinationIATA = destinationDropdown.dataset.iataCode;
+        const isRoundTrip = !roundTripCheckbox.checked;
+
+        const flightClassCarbonCost = parseFloat(Array.from(flightClassRadios).find(radio => radio.checked)?.value || 0.15);
+
+        const origin = originIATA ? airportData.find(airport => airport.iata_code === originIATA) : null;
+        const destination = destinationIATA ? airportData.find(airport => airport.iata_code === destinationIATA) : null;
+
+        const metrics = origin && destination ? calculateMetrics(origin, destination, isRoundTrip, flightClassCarbonCost) : null;
+        updateFields(metrics, origin, destination);
+        updateMap(origin, destination);
     }
 
     function attachDropdown(inputField, airports) {
@@ -155,107 +282,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                 }
             }
         });
-    }
-
-    function updateFields(metrics, origin, destination) {
-        if (origin) {
-            originCoordinatesField.textContent = `${origin.latitude}, ${origin.longitude}`;
-        }
-        if (destination) {
-            destinationCoordinatesField.textContent = `${destination.latitude}, ${destination.longitude}`;
-        }
-
-        if (metrics) {
-            totalMilesField.textContent = `${metrics.totalDistance.toFixed(2)} miles`; // Add units
-            carbonCostField.textContent = `${metrics.carbonCost.toFixed(2)} lbs CO₂`; // Add units
-            panelsToOffsetField.textContent = metrics.panelsNeeded;
-
-            // Calculate and display the total cost
-            const totalCost = metrics.panelsNeeded * 25;
-            const totalCostField = document.getElementById('total-cost');
-            if (totalCostField) {
-                totalCostField.textContent = `$${totalCost}`;
-            }
-        }
-    }
-
-    function updateMap(origin, destination) {
-        if (origin) {
-            if (originMarker) originMarker.remove();
-            originMarker = new mapboxgl.Marker({ color: '#0F4C81' })
-                .setLngLat([origin.longitude, origin.latitude])
-                .addTo(map);
-        }
-
-        if (destination) {
-            if (destinationMarker) destinationMarker.remove();
-            destinationMarker = new mapboxgl.Marker({ color: '#0F4C81' })
-                .setLngLat([destination.longitude, destination.latitude])
-                .addTo(map);
-        }
-
-        let flyToCenter = null;
-        if (origin && destination) {
-            const midLongitude = (origin.longitude + destination.longitude) / 2;
-            const midLatitude = (origin.latitude + destination.latitude) / 2;
-            flyToCenter = [midLongitude, midLatitude];
-
-            if (map.getSource('flight-path')) {
-                map.removeLayer('flight-path');
-                map.removeSource('flight-path');
-            }
-
-            map.addSource('flight-path', {
-                type: 'geojson',
-                data: {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'LineString',
-                        coordinates: [
-                            [origin.longitude, origin.latitude],
-                            [destination.longitude, destination.latitude]
-                        ]
-                    }
-                }
-            });
-
-            map.addLayer({
-                id: 'flight-path',
-                type: 'line',
-                source: 'flight-path',
-                layout: {},
-                paint: {
-                    'line-color': '#30A462',
-                    'line-width': 4
-                }
-            });
-        } else if (origin) {
-            flyToCenter = [origin.longitude, origin.latitude];
-        } else if (destination) {
-            flyToCenter = [destination.longitude, destination.latitude];
-        }
-
-        if (flyToCenter && (!lastFlyToCenter || flyToCenter[0] !== lastFlyToCenter[0] || flyToCenter[1] !== lastFlyToCenter[1])) {
-            lastFlyToCenter = flyToCenter;
-            map.easeTo({ center: flyToCenter, zoom: 2, essential: true }); // Smooth easing animation
-        }
-    }
-
-    const airportData = await fetchAirportData();
-
-    function handleSelectionChange() {
-        const originIATA = originDropdown.dataset.iataCode;
-        const destinationIATA = destinationDropdown.dataset.iataCode;
-        const isRoundTrip = !roundTripCheckbox.checked;
-
-        const flightClassCarbonCost = parseFloat(Array.from(flightClassRadios).find(radio => radio.checked)?.value || 0.15);
-
-        const origin = originIATA ? airportData.find(airport => airport.iata_code === originIATA) : null;
-        const destination = destinationIATA ? airportData.find(airport => airport.iata_code === destinationIATA) : null;
-
-        const metrics = origin && destination ? calculateMetrics(origin, destination, isRoundTrip, flightClassCarbonCost) : null;
-        updateFields(metrics, origin, destination);
-        updateMap(origin, destination);
     }
 
     attachDropdown(originDropdown, airportData);
