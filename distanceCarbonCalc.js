@@ -27,14 +27,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     map.doubleClickZoom.disable();
     map.touchZoomRotate.disable();
 
-    // Constants for emissions per mile by travel class (in pounds of CO₂)
-    const EMISSIONS_PER_MILE = {
-        coach: 0.198,    // lbs CO₂ per mile (economy)
-        business: 0.396, // lbs CO₂ per mile (business)
-        first: 0.594     // lbs CO₂ per mile (first)
+    // CO₂ emission constants in lbs per mile
+    const CO2_PER_MILE = {
+        economy: 0.198,
+        business: 0.396,
+        first: 0.594
     };
-
-    const CARBON_OFFSET_PER_PANEL = 22.0462; // Carbon offset (in pounds) per panel (equivalent to 10 kg)
 
     async function fetchAirportData() {
         try {
@@ -66,7 +64,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     function haversineDistance(lat1, lon1, lat2, lon2) {
-        const R = 3958.8; // Radius of Earth in miles
+        const R = 6371;
         const toRadians = degrees => degrees * (Math.PI / 180);
         const dLat = toRadians(lat2 - lat1);
         const dLon = toRadians(lon2 - lon1);
@@ -74,7 +72,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                   Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
                   Math.sin(dLon / 2) * Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c; // Distance in miles
+        return R * c;
     }
 
     function calculateMetrics(origin, destination, isRoundTrip, flightClass) {
@@ -82,14 +80,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         const roundTripMultiplier = isRoundTrip ? 2 : 1;
         const totalDistance = distance * roundTripMultiplier;
 
-        // Get emissions factor based on selected flight class
-        const emissionsFactor = EMISSIONS_PER_MILE[flightClass] || EMISSIONS_PER_MILE.coach; // Default to coach if undefined
-
-        // Calculate carbon cost in pounds
-        const carbonCost = totalDistance * emissionsFactor;
-
-        // Calculate panels needed to offset
-        const panelsNeeded = Math.ceil(carbonCost / CARBON_OFFSET_PER_PANEL);
+        // Use the CO₂ per mile constant for the selected class
+        const carbonCost = totalDistance * CO2_PER_MILE[flightClass.toLowerCase()];
+        const panelsNeeded = Math.ceil(carbonCost * 0.01);
 
         return { totalDistance, carbonCost, panelsNeeded };
     }
@@ -104,96 +97,26 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         if (metrics) {
             totalMilesField.textContent = metrics.totalDistance.toFixed(2);
-            carbonCostField.textContent = metrics.carbonCost.toFixed(2); // Show carbon cost in pounds
+            carbonCostField.textContent = metrics.carbonCost.toFixed(2);
             panelsToOffsetField.textContent = metrics.panelsNeeded;
         }
     }
-
-    function updateMap(origin, destination) {
-        if (origin) {
-            if (originMarker) originMarker.remove();
-            originMarker = new mapboxgl.Marker({ color: '#0F4C81' })
-                .setLngLat([origin.longitude, origin.latitude])
-                .addTo(map);
-        }
-
-        if (destination) {
-            if (destinationMarker) destinationMarker.remove();
-            destinationMarker = new mapboxgl.Marker({ color: '#0F4C81' })
-                .setLngLat([destination.longitude, destination.latitude])
-                .addTo(map);
-        }
-
-        let flyToCenter = null;
-        if (origin && destination) {
-            const midLongitude = (origin.longitude + destination.longitude) / 2;
-            const midLatitude = (origin.latitude + destination.latitude) / 2;
-            flyToCenter = [midLongitude, midLatitude];
-
-            if (map.getSource('flight-path')) {
-                map.removeLayer('flight-path');
-                map.removeSource('flight-path');
-            }
-
-            map.addSource('flight-path', {
-                type: 'geojson',
-                data: {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'LineString',
-                        coordinates: [
-                            [origin.longitude, origin.latitude],
-                            [destination.longitude, destination.latitude]
-                        ]
-                    }
-                }
-            });
-
-            map.addLayer({
-                id: 'flight-path',
-                type: 'line',
-                source: 'flight-path',
-                layout: {},
-                paint: {
-                    'line-color': '#30A462',
-                    'line-width': 4
-                }
-            });
-        } else if (origin) {
-            flyToCenter = [origin.longitude, origin.latitude];
-        } else if (destination) {
-            flyToCenter = [destination.longitude, destination.latitude];
-        }
-
-        if (flyToCenter && (!lastFlyToCenter || flyToCenter[0] !== lastFlyToCenter[0] || flyToCenter[1] !== lastFlyToCenter[1])) {
-            lastFlyToCenter = flyToCenter;
-            map.easeTo({ center: flyToCenter, zoom: 2, essential: true }); // Smooth easing animation
-        }
-    }
-
-    const airportData = await fetchAirportData();
 
     function handleSelectionChange() {
         const originIATA = originDropdown.dataset.iataCode;
         const destinationIATA = destinationDropdown.dataset.iataCode;
         const isRoundTrip = roundTripCheckbox.checked;
 
-        const selectedFlightClass = Array.from(flightClassRadios).find(radio => radio.checked)?.value || "coach";
+        const selectedFlightClass = Array.from(flightClassRadios).find(radio => radio.checked)?.value || 'economy';
 
         const origin = originIATA ? airportData.find(airport => airport.iata_code === originIATA) : null;
         const destination = destinationIATA ? airportData.find(airport => airport.iata_code === destinationIATA) : null;
 
         const metrics = origin && destination ? calculateMetrics(origin, destination, isRoundTrip, selectedFlightClass) : null;
         updateFields(metrics, origin, destination);
-        updateMap(origin, destination);
     }
 
-    function attachDropdown(inputField, airports) {
-        // Dropdown logic remains unchanged
-    }
-
-    attachDropdown(originDropdown, airportData);
-    attachDropdown(destinationDropdown, airportData);
+    const airportData = await fetchAirportData();
 
     originDropdown.addEventListener("input", handleSelectionChange);
     destinationDropdown.addEventListener("input", handleSelectionChange);
