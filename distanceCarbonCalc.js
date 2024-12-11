@@ -81,10 +81,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     function updateFields(metrics, origin, destination) {
         if (origin) {
-            originCoordinatesField.textContent = ${origin.latitude}, ${origin.longitude};
+            originCoordinatesField.textContent = `${origin.latitude}, ${origin.longitude}`;
         }
         if (destination) {
-            destinationCoordinatesField.textContent = ${destination.latitude}, ${destination.longitude};
+            destinationCoordinatesField.textContent = `${destination.latitude}, ${destination.longitude}`;
         }
 
         if (metrics) {
@@ -226,10 +226,10 @@ document.addEventListener("DOMContentLoaded", async function () {
                     option.style.padding = '8px';
                     option.style.cursor = 'pointer';
                     option.style.borderBottom = '1px solid #ddd';
-                    option.textContent = ${airport.name} (${airport.iata_code});
+                    option.textContent = `${airport.name} (${airport.iata_code})`;
 
                     option.addEventListener('click', function () {
-                        inputField.value = ${airport.name};
+                        inputField.value = `${airport.name}`;
                         inputField.dataset.iataCode = airport.iata_code;
                         dropdownContainer.style.display = 'none';
                         handleSelectionChange();
@@ -251,9 +251,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         inputField.addEventListener('input', function () {
             if (inputField.value.trim().length > 0) {
                 const rect = inputField.getBoundingClientRect();
-                dropdownContainer.style.top = ${window.scrollY + rect.bottom}px;
-                dropdownContainer.style.left = ${window.scrollX + rect.left}px;
-                dropdownContainer.style.width = ${inputField.offsetWidth}px;
+                dropdownContainer.style.top = `${window.scrollY + rect.bottom}px`;
+                dropdownContainer.style.left = `${window.scrollX + rect.left}px`;
+                dropdownContainer.style.width = `${inputField.offsetWidth}px`;
                 populateDropdown(inputField, dropdownContainer, airports);
             } else {
                 dropdownContainer.style.display = 'none';
@@ -289,7 +289,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     goToAppButton.addEventListener("click", function () {
         const panelsNeeded = parseInt(panelsToOffsetField.textContent, 10);
         if (!isNaN(panelsNeeded) && panelsNeeded > 0) {
-            const appUrl = https://app.renewables.org/?quantity=${panelsNeeded};
+            const appUrl = `https://app.renewables.org/?quantity=${panelsNeeded}`;
             window.location.href = appUrl;
         } else {
             alert("Please calculate the required panels first.");
