@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     function haversineDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371;
+        const R = 3958.8; // Radius of the Earth in miles
         const toRadians = degrees => degrees * (Math.PI / 180);
         const dLat = toRadians(lat2 - lat1);
         const dLon = toRadians(lon2 - lon1);
@@ -88,8 +88,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
         if (metrics) {
-            totalMilesField.textContent = `${metrics.totalDistance.toFixed(2)} km`; // Add units
-            carbonCostField.textContent = `${metrics.carbonCost.toFixed(2)} kg CO₂`; // Add units
+            totalMilesField.textContent = `${metrics.totalDistance.toFixed(2)} miles`; // Add units
+            carbonCostField.textContent = `${metrics.carbonCost.toFixed(2)} lbs CO₂`; // Add units
             panelsToOffsetField.textContent = metrics.panelsNeeded;
 
             // Calculate and display the total cost
