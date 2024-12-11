@@ -27,15 +27,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     map.doubleClickZoom.disable();
     map.touchZoomRotate.disable();
 
-    // Constants for emissions per mile by travel class
+    // Constants for emissions per mile by travel class (in pounds of CO₂)
     const EMISSIONS_PER_MILE = {
-        coach: 0.09,    // kg CO₂ per mile (economy)
-        business: 0.2,  // kg CO₂ per mile (business)
-        first: 0.3      // kg CO₂ per mile (first)
+        coach: 0.198,    // lbs CO₂ per mile (economy)
+        business: 0.396, // lbs CO₂ per mile (business)
+        first: 0.594     // lbs CO₂ per mile (first)
     };
 
-    const CARBON_OFFSET_PER_PANEL = 0.01; // Carbon offset (in metric tons) per panel
-    const KG_TO_LBS = 2.20462; // Conversion factor for kilograms to pounds
+    const CARBON_OFFSET_PER_PANEL = 22.0462; // Carbon offset (in pounds) per panel (equivalent to 10 kg)
 
     async function fetchAirportData() {
         try {
@@ -67,7 +66,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     function haversineDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Radius of Earth in kilometers
+        const R = 3958.8; // Radius of Earth in miles
         const toRadians = degrees => degrees * (Math.PI / 180);
         const dLat = toRadians(lat2 - lat1);
         const dLon = toRadians(lon2 - lon1);
@@ -75,7 +74,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                   Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
                   Math.sin(dLon / 2) * Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c; // Distance in kilometers
+        return R * c; // Distance in miles
     }
 
     function calculateMetrics(origin, destination, isRoundTrip, flightClass) {
@@ -86,13 +85,13 @@ document.addEventListener("DOMContentLoaded", async function () {
         // Get emissions factor based on selected flight class
         const emissionsFactor = EMISSIONS_PER_MILE[flightClass] || EMISSIONS_PER_MILE.coach; // Default to coach if undefined
 
-        // Calculate carbon cost in kilograms and convert to pounds
-        const carbonCostKg = totalDistance * emissionsFactor;
-        const carbonCostLbs = carbonCostKg * KG_TO_LBS;
+        // Calculate carbon cost in pounds
+        const carbonCost = totalDistance * emissionsFactor;
 
-        const panelsNeeded = Math.ceil(carbonCostKg / CARBON_OFFSET_PER_PANEL);
+        // Calculate panels needed to offset
+        const panelsNeeded = Math.ceil(carbonCost / CARBON_OFFSET_PER_PANEL);
 
-        return { totalDistance, carbonCostLbs, panelsNeeded };
+        return { totalDistance, carbonCost, panelsNeeded };
     }
 
     function updateFields(metrics, origin, destination) {
@@ -105,7 +104,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         if (metrics) {
             totalMilesField.textContent = metrics.totalDistance.toFixed(2);
-            carbonCostField.textContent = metrics.carbonCostLbs.toFixed(2); // Show carbon cost in pounds
+            carbonCostField.textContent = metrics.carbonCost.toFixed(2); // Show carbon cost in pounds
             panelsToOffsetField.textContent = metrics.panelsNeeded;
         }
     }
