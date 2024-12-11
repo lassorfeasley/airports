@@ -68,12 +68,12 @@ document.addEventListener("DOMContentLoaded", async function () {
         return R * c;
     }
 
-    function calculateMetrics(origin, destination, isRoundTrip, flightClassMultiplier) {
+    function calculateMetrics(origin, destination, isRoundTrip, flightClassCarbonCost) {
         const distance = haversineDistance(origin.latitude, origin.longitude, destination.latitude, destination.longitude);
         const roundTripMultiplier = isRoundTrip ? 2 : 1;
         const totalDistance = distance * roundTripMultiplier;
 
-        const carbonCost = totalDistance * flightClassMultiplier;
+        const carbonCost = totalDistance * flightClassCarbonCost;
         const panelsNeeded = Math.ceil(carbonCost * 0.01);
 
         return { totalDistance, carbonCost, panelsNeeded };
@@ -196,12 +196,12 @@ document.addEventListener("DOMContentLoaded", async function () {
         const destinationIATA = destinationDropdown.dataset.iataCode;
         const isRoundTrip = !roundTripCheckbox.checked;
 
-        const flightClassMultiplier = parseFloat(Array.from(flightClassRadios).find(radio => radio.checked)?.value || 0.15);
+        const flightClassCarbonCost = parseFloat(Array.from(flightClassRadios).find(radio => radio.checked)?.value || 0.15);
 
         const origin = originIATA ? airportData.find(airport => airport.iata_code === originIATA) : null;
         const destination = destinationIATA ? airportData.find(airport => airport.iata_code === destinationIATA) : null;
 
-        const metrics = origin && destination ? calculateMetrics(origin, destination, isRoundTrip, flightClassMultiplier) : null;
+        const metrics = origin && destination ? calculateMetrics(origin, destination, isRoundTrip, flightClassCarbonCost) : null;
         updateFields(metrics, origin, destination);
         updateMap(origin, destination);
     }
