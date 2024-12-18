@@ -207,7 +207,7 @@ function calculateMetrics(origin, destination, isRoundTrip, flightClassCarbonCos
         updateMap(origin, destination);
     }
 
-    function attachDropdown(inputField, airports) {
+function attachDropdown(inputField, airports) {
     const dropdownContainer = document.createElement('div');
     dropdownContainer.style.position = 'absolute';
     dropdownContainer.style.zIndex = '1000';
@@ -217,14 +217,19 @@ function calculateMetrics(origin, destination, isRoundTrip, flightClassCarbonCos
     dropdownContainer.style.overflowY = 'auto';
     dropdownContainer.style.display = 'none';
     dropdownContainer.style.borderRadius = '10px'; // Rounded corners
-    dropdownContainer.style.marginTop = '5px';    // Margin between text field and dropdown
-    dropdownContainer.style.overflow = 'hidden';  // Ensures corners are fully rounded
+    dropdownContainer.style.marginTop = '5px'; // Margin between input and dropdown
     document.body.appendChild(dropdownContainer);
 
-    function populateDropdown(inputField, dropdownContainer, airports) {
-        dropdownContainer.innerHTML = '';
-        const searchTerm = inputField.value.toLowerCase();
+    function populateDropdown() {
+        dropdownContainer.innerHTML = ''; // Clear previous options
+        const searchTerm = inputField.value.trim().toLowerCase();
 
+        if (searchTerm.length === 0) {
+            dropdownContainer.style.display = 'none';
+            return;
+        }
+
+        // Filter airports
         const filteredAirports = airports.filter(airport =>
             airport.name.toLowerCase().includes(searchTerm) ||
             airport.municipality.toLowerCase().includes(searchTerm) ||
@@ -232,18 +237,18 @@ function calculateMetrics(origin, destination, isRoundTrip, flightClassCarbonCos
         ).slice(0, 4);
 
         if (filteredAirports.length > 0) {
-            filteredAirports.forEach((airport, index) => {
+            filteredAirports.forEach(airport => {
                 const option = document.createElement('div');
+                option.textContent = `${airport.name} (${airport.iata_code})`;
                 option.style.padding = '8px';
                 option.style.cursor = 'pointer';
                 option.style.borderBottom = '1px solid #ddd';
-                option.textContent = `${airport.name} (${airport.iata_code})`;
 
-                // Add "heading-five" class
+                // Apply heading-five class if it exists
                 option.classList.add('heading-five');
 
-                option.addEventListener('click', function () {
-                    inputField.value = `${airport.name}`;
+                option.addEventListener('click', () => {
+                    inputField.value = airport.name;
                     inputField.dataset.iataCode = airport.iata_code;
                     dropdownContainer.style.display = 'none';
                     handleSelectionChange();
@@ -251,46 +256,28 @@ function calculateMetrics(origin, destination, isRoundTrip, flightClassCarbonCos
 
                 dropdownContainer.appendChild(option);
             });
-            dropdownContainer.style.display = 'block';
         } else {
             const noResult = document.createElement('div');
+            noResult.textContent = 'No results found';
             noResult.style.padding = '8px';
             noResult.style.color = 'gray';
-            noResult.textContent = 'No results found';
-            noResult.classList.add('heading-five'); // Apply "heading-five" to no results too
+            noResult.classList.add('heading-five'); // Apply heading-five class
             dropdownContainer.appendChild(noResult);
-            dropdownContainer.style.display = 'block';
         }
+
+        // Show dropdown
+        const rect = inputField.getBoundingClientRect();
+        dropdownContainer.style.top = `${window.scrollY + rect.bottom}px`;
+        dropdownContainer.style.left = `${window.scrollX + rect.left}px`;
+        dropdownContainer.style.width = `${inputField.offsetWidth}px`;
+        dropdownContainer.style.display = 'block';
     }
 
-    inputField.addEventListener('input', function () {
-        if (inputField.value.trim().length > 0) {
-            const rect = inputField.getBoundingClientRect();
-            dropdownContainer.style.top = `${window.scrollY + rect.bottom}px`;
-            dropdownContainer.style.left = `${window.scrollX + rect.left}px`;
-            dropdownContainer.style.width = `${inputField.offsetWidth}px`;
-            populateDropdown(inputField, dropdownContainer, airports);
-        } else {
-            dropdownContainer.style.display = 'none';
-        }
-    });
-
-    inputField.addEventListener('blur', function () {
-        setTimeout(() => {
-            dropdownContainer.style.display = 'none';
-        }, 200);
-    });
-
-    inputField.addEventListener('keydown', function (event) {
-        if (event.key === 'Enter') {
-            const firstOption = dropdownContainer.querySelector('div');
-            if (firstOption) {
-                firstOption.click();
-                event.preventDefault();
-            }
-        }
-    });
+    // Event listeners
+    inputField.addEventListener('input', populateDropdown);
+    inputField.addEventListener('blur', () => setTimeout(() => dropdownContainer.style.display = 'none', 200));
 }
+
 
 
     attachDropdown(originDropdown, airportData);
