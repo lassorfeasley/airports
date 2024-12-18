@@ -68,36 +68,35 @@ document.addEventListener("DOMContentLoaded", async function () {
         return R * c;
     }
 
-function calculateMetrics(origin, destination, isRoundTrip, flightClassCarbonCost) {
-    const distance = haversineDistance(origin.latitude, origin.longitude, destination.latitude, destination.longitude);
-    const roundTripMultiplier = isRoundTrip ? 2 : 1;
-    const totalDistance = distance * roundTripMultiplier;
+    function calculateMetrics(origin, destination, isRoundTrip, flightClassCarbonCost) {
+        const distance = haversineDistance(origin.latitude, origin.longitude, destination.latitude, destination.longitude);
+        const roundTripMultiplier = isRoundTrip ? 2 : 1;
+        const totalDistance = distance * roundTripMultiplier;
 
-    const carbonCost = totalDistance * flightClassCarbonCost;
-    const panelsNeeded = Math.ceil(carbonCost / 530); // Each panel offsets 530 lbs of CO₂
+        const carbonCost = totalDistance * flightClassCarbonCost;
+        const panelsNeeded = Math.ceil(carbonCost / 530); // Each panel offsets 530 lbs of CO₂
 
-    return { totalDistance, carbonCost, panelsNeeded };
-}
-
+        return { totalDistance, carbonCost, panelsNeeded };
+    }
 
     function updateFields(metrics, origin, destination) {
         if (origin) {
-            originCoordinatesField.textContent = ${origin.latitude}, ${origin.longitude};
+            originCoordinatesField.textContent = `${origin.latitude}, ${origin.longitude}`;
         }
         if (destination) {
-            destinationCoordinatesField.textContent = ${destination.latitude}, ${destination.longitude};
+            destinationCoordinatesField.textContent = `${destination.latitude}, ${destination.longitude}`;
         }
 
         if (metrics) {
-            totalMilesField.textContent = ${metrics.totalDistance.toFixed(2)} miles; // Add units
-            carbonCostField.textContent = ${metrics.carbonCost.toFixed(2)} lbs CO₂; // Add units
+            totalMilesField.textContent = `${metrics.totalDistance.toFixed(2)} miles`; // Add units
+            carbonCostField.textContent = `${metrics.carbonCost.toFixed(2)} lbs CO₂`; // Add units
             panelsToOffsetField.textContent = metrics.panelsNeeded;
 
             // Calculate and display the total cost
             const totalCost = metrics.panelsNeeded * 25;
             const totalCostField = document.getElementById('total-cost');
             if (totalCostField) {
-                totalCostField.textContent = $${totalCost};
+                totalCostField.textContent = `$${totalCost}`;
             }
         }
     }
@@ -234,10 +233,10 @@ function calculateMetrics(origin, destination, isRoundTrip, flightClassCarbonCos
                     option.style.padding = '8px';
                     option.style.cursor = 'pointer';
                     option.style.borderBottom = '1px solid #ddd';
-                    option.textContent = ${airport.name} (${airport.iata_code});
+                    option.textContent = `${airport.name} (${airport.iata_code})`;
 
                     option.addEventListener('click', function () {
-                        inputField.value = ${airport.name};
+                        inputField.value = `${airport.name}`;
                         inputField.dataset.iataCode = airport.iata_code;
                         dropdownContainer.style.display = 'none';
                         handleSelectionChange();
@@ -259,9 +258,9 @@ function calculateMetrics(origin, destination, isRoundTrip, flightClassCarbonCos
         inputField.addEventListener('input', function () {
             if (inputField.value.trim().length > 0) {
                 const rect = inputField.getBoundingClientRect();
-                dropdownContainer.style.top = ${window.scrollY + rect.bottom}px;
-                dropdownContainer.style.left = ${window.scrollX + rect.left}px;
-                dropdownContainer.style.width = ${inputField.offsetWidth}px;
+                dropdownContainer.style.top = `${window.scrollY + rect.bottom}px`;
+                dropdownContainer.style.left = `${window.scrollX + rect.left}px`;
+                dropdownContainer.style.width = `${inputField.offsetWidth}px`;
                 populateDropdown(inputField, dropdownContainer, airports);
             } else {
                 dropdownContainer.style.display = 'none';
@@ -297,7 +296,7 @@ function calculateMetrics(origin, destination, isRoundTrip, flightClassCarbonCos
     goToAppButton.addEventListener("click", function () {
         const panelsNeeded = parseInt(panelsToOffsetField.textContent, 10);
         if (!isNaN(panelsNeeded) && panelsNeeded > 0) {
-            const appUrl = https://app.renewables.org/?quantity=${panelsNeeded};
+            const appUrl = `https://app.renewables.org/?quantity=${panelsNeeded}`;
             window.location.href = appUrl;
         } else {
             alert("Please calculate the required panels first.");
