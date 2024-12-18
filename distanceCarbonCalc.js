@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         const totalDistance = distance * roundTripMultiplier;
 
         const carbonCost = totalDistance * flightClassCarbonCost;
-        const panelsNeeded = Math.ceil(carbonCost / 530); // Each panel offsets 530 lbs of CO₂
+        const panelsNeeded = Math.ceil(carbonCost / 586); // Each panel offsets 586 lbs of CO₂
 
         return { totalDistance, carbonCost, panelsNeeded };
     }
