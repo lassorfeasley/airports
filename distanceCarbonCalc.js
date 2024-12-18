@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         container: 'map',
         style: 'mapbox://styles/lassor-feasley/cloonclal00bj01ns6c7q6aay',
         center: [0, 0],
-        zoom: 2 // Fixed zoom level
+        zoom: 1.75 // Fixed zoom level
     });
 
     // Disable zoom interaction
