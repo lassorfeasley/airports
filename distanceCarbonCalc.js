@@ -86,7 +86,7 @@ function calculateMetrics(origin, destination, isRoundTrip, flightClassCarbonCos
 
         }
         if (destination) {
-            destinationCoordinatesField.textContent = ${destination.latitude}, ${destination.longitude};
+            destinationCoordinatesField.textContent = `${destination.latitude}, ${destination.longitude}`;
         }
 
         if (metrics) {
