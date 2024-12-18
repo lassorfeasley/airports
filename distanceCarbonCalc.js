@@ -185,7 +185,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         if (flyToCenter && (!lastFlyToCenter || flyToCenter[0] !== lastFlyToCenter[0] || flyToCenter[1] !== lastFlyToCenter[1])) {
             lastFlyToCenter = flyToCenter;
-            map.easeTo({ center: flyToCenter, zoom: 2, essential: true }); // Smooth easing animation
+            map.easeTo({ center: flyToCenter, zoom: .5, essential: true }); // Smooth easing animation
         }
     }
 
