@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         container: 'map',
         style: 'mapbox://styles/lassor-feasley/cloonclal00bj01ns6c7q6aay',
         center: [0, 0],
-        zoom: 2 // Fixed zoom level
+        zoom: 1.5 // Fixed zoom level
     });
 
     // Disable zoom interaction
@@ -185,7 +185,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         if (flyToCenter && (!lastFlyToCenter || flyToCenter[0] !== lastFlyToCenter[0] || flyToCenter[1] !== lastFlyToCenter[1])) {
             lastFlyToCenter = flyToCenter;
-            map.easeTo({ center: flyToCenter, zoom: 2, essential: true }); // Smooth easing animation
+            map.easeTo({ center: flyToCenter, zoom: 1.5, essential: true }); // Smooth easing animation
         }
     }
 
