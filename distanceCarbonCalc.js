@@ -207,78 +207,83 @@ function calculateMetrics(origin, destination, isRoundTrip, flightClassCarbonCos
         updateMap(origin, destination);
     }
 
-function attachDropdown(inputField, airports) {
-    const dropdownContainer = document.createElement('div');
-    dropdownContainer.style.position = 'absolute';
-    dropdownContainer.style.zIndex = '1000';
-    dropdownContainer.style.backgroundColor = 'white';
-    dropdownContainer.style.border = '1px solid #ccc';
-    dropdownContainer.style.maxHeight = '150px';
-    dropdownContainer.style.overflowY = 'auto';
-    dropdownContainer.style.display = 'none';
-    dropdownContainer.style.borderRadius = '10px'; // Rounded corners
-    dropdownContainer.style.marginTop = '5px'; // Margin between input and dropdown
-    document.body.appendChild(dropdownContainer);
+    function attachDropdown(inputField, airports) {
+        const dropdownContainer = document.createElement('div');
+        dropdownContainer.style.position = 'absolute';
+        dropdownContainer.style.zIndex = '1000';
+        dropdownContainer.style.backgroundColor = 'white';
+        dropdownContainer.style.border = '1px solid #ccc';
+        dropdownContainer.style.maxHeight = '150px';
+        dropdownContainer.style.overflowY = 'auto';
+        dropdownContainer.style.display = 'none';
+        document.body.appendChild(dropdownContainer);
 
-    function populateDropdown() {
-        dropdownContainer.innerHTML = ''; // Clear previous options
-        const searchTerm = inputField.value.trim().toLowerCase();
+        function populateDropdown(inputField, dropdownContainer, airports) {
+            dropdownContainer.innerHTML = '';
+            const searchTerm = inputField.value.toLowerCase();
 
-        if (searchTerm.length === 0) {
-            dropdownContainer.style.display = 'none';
-            return;
-        }
+            const filteredAirports = airports.filter(airport =>
+                airport.name.toLowerCase().includes(searchTerm) ||
+                airport.municipality.toLowerCase().includes(searchTerm) ||
+                airport.iata_code.toLowerCase().includes(searchTerm)
+            ).slice(0, 4);
 
-        // Filter airports
-        const filteredAirports = airports.filter(airport =>
-            airport.name.toLowerCase().includes(searchTerm) ||
-            airport.municipality.toLowerCase().includes(searchTerm) ||
-            airport.iata_code.toLowerCase().includes(searchTerm)
-        ).slice(0, 4);
+            if (filteredAirports.length > 0) {
+                filteredAirports.forEach((airport, index) => {
+                    const option = document.createElement('div');
+                    option.style.padding = '8px';
+                    option.style.cursor = 'pointer';
+                    option.style.borderBottom = '1px solid #ddd';
+                    option.textContent = ${airport.name} (${airport.iata_code});
 
-        if (filteredAirports.length > 0) {
-            filteredAirports.forEach(airport => {
-                const option = document.createElement('div');
-                option.textContent = `${airport.name} (${airport.iata_code})`;
-                option.style.padding = '8px';
-                option.style.cursor = 'pointer';
-                option.style.borderBottom = '1px solid #ddd';
+                    option.addEventListener('click', function () {
+                        inputField.value = ${airport.name};
+                        inputField.dataset.iataCode = airport.iata_code;
+                        dropdownContainer.style.display = 'none';
+                        handleSelectionChange();
+                    });
 
-                // Apply heading-five class if it exists
-                option.classList.add('heading-five');
-
-                option.addEventListener('click', () => {
-                    inputField.value = airport.name;
-                    inputField.dataset.iataCode = airport.iata_code;
-                    dropdownContainer.style.display = 'none';
-                    handleSelectionChange();
+                    dropdownContainer.appendChild(option);
                 });
-
-                dropdownContainer.appendChild(option);
-            });
-        } else {
-            const noResult = document.createElement('div');
-            noResult.textContent = 'No results found';
-            noResult.style.padding = '8px';
-            noResult.style.color = 'gray';
-            noResult.classList.add('heading-five'); // Apply heading-five class
-            dropdownContainer.appendChild(noResult);
+                dropdownContainer.style.display = 'block';
+            } else {
+                const noResult = document.createElement('div');
+                noResult.style.padding = '8px';
+                noResult.style.color = 'gray';
+                noResult.textContent = 'No results found';
+                dropdownContainer.appendChild(noResult);
+                dropdownContainer.style.display = 'block';
+            }
         }
 
-        // Show dropdown
-        const rect = inputField.getBoundingClientRect();
-        dropdownContainer.style.top = `${window.scrollY + rect.bottom}px`;
-        dropdownContainer.style.left = `${window.scrollX + rect.left}px`;
-        dropdownContainer.style.width = `${inputField.offsetWidth}px`;
-        dropdownContainer.style.display = 'block';
+        inputField.addEventListener('input', function () {
+            if (inputField.value.trim().length > 0) {
+                const rect = inputField.getBoundingClientRect();
+                dropdownContainer.style.top = ${window.scrollY + rect.bottom}px;
+                dropdownContainer.style.left = ${window.scrollX + rect.left}px;
+                dropdownContainer.style.width = ${inputField.offsetWidth}px;
+                populateDropdown(inputField, dropdownContainer, airports);
+            } else {
+                dropdownContainer.style.display = 'none';
+            }
+        });
+
+        inputField.addEventListener('blur', function () {
+            setTimeout(() => {
+                dropdownContainer.style.display = 'none';
+            }, 200);
+        });
+
+        inputField.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                const firstOption = dropdownContainer.querySelector('div');
+                if (firstOption) {
+                    firstOption.click();
+                    event.preventDefault();
+                }
+            }
+        });
     }
-
-    // Event listeners
-    inputField.addEventListener('input', populateDropdown);
-    inputField.addEventListener('blur', () => setTimeout(() => dropdownContainer.style.display = 'none', 200));
-}
-
-
 
     attachDropdown(originDropdown, airportData);
     attachDropdown(destinationDropdown, airportData);
