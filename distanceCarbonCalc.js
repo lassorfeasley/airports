@@ -82,11 +82,10 @@ function calculateMetrics(origin, destination, isRoundTrip, flightClassCarbonCos
 
     function updateFields(metrics, origin, destination) {
         if (origin) {
-            originCoordinatesField.textContent = `${origin.latitude}, ${origin.longitude}`;
-
+            originCoordinatesField.textContent = ${origin.latitude}, ${origin.longitude};
         }
         if (destination) {
-            destinationCoordinatesField.textContent = `${destination.latitude}, ${destination.longitude}`;
+            destinationCoordinatesField.textContent = ${destination.latitude}, ${destination.longitude};
         }
 
         if (metrics) {
