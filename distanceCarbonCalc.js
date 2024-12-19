@@ -38,23 +38,24 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-    function parseCSV(data) {
-        const lines = data.split("\n");
-        const airports = [];
-        for (let i = 1; i < lines.length; i++) {
-            const fields = lines[i].split(",");
-            if (fields[2] === '"large_airport"' && fields[13]) {
-                airports.push({
-                    name: fields[3].replace(/"/g, ""),
-                    municipality: fields[10].replace(/"/g, ""),
-                    iata_code: fields[13].replace(/"/g, ""),
-                    latitude: parseFloat(fields[4]),
-                    longitude: parseFloat(fields[5])
-                });
-            }
+function parseCSV(data) {
+    const lines = data.split("\n");
+    const airports = [];
+    for (let i = 1; i < lines.length; i++) {
+        const fields = lines[i].split(",");
+        if ((fields[2] === '"large_airport"' || fields[2] === '"medium_airport"') && fields[13]) {
+            airports.push({
+                name: fields[3].replace(/"/g, ""),
+                municipality: fields[10].replace(/"/g, ""),
+                iata_code: fields[13].replace(/"/g, ""),
+                latitude: parseFloat(fields[4]),
+                longitude: parseFloat(fields[5])
+            });
         }
-        return airports;
     }
+    return airports;
+}
+
 
     function haversineDistance(lat1, lon1, lat2, lon2) {
         const R = 3958.8; // Radius of the Earth in miles
